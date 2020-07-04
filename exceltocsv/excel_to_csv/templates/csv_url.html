@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Download CSV File</title>
+</head>
+        <h1>Download CSV File</h1>
+        <body>
+        <h3>
+        {% for csv_url in csv_list%}
+        <ul>
+        <li><a href={{csv_url}}>{{csv_url}}</a></li>
+        </ul>
+        {% endfor %}
+        </h3>
+        </body>
+</html>

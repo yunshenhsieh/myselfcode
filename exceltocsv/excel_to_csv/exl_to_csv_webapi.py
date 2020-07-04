@@ -1,5 +1,5 @@
-import os
-from flask import Flask, request, redirect, url_for
+import os,xlrd
+from flask import Flask, request, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
 
 UPLOAD_FOLDER = 'D:/uploadtest/'
@@ -37,7 +37,7 @@ def upload_file():
             file.save(storage_dir)
             # 下面是導去下載csv頁面
             if tmp_dir == '':tmp_dir = file.filename.replace('.','')
-            return redirect(url_for('download_csv',
+            return redirect(url_for('download_csv_url',
                                     filename=filename,tmp_dir=tmp_dir))
     return '''
     <!doctype html>
@@ -51,30 +51,44 @@ def upload_file():
 
 from flask import send_from_directory
 
-# @app.route('/uploads/<filename>')
-# def uploaded_file(filename):
-#     return send_from_directory(app.config['UPLOAD_FOLDER'],
-#                                filename)
+@app.route('/download_url/<tmp_dir>/<filename>')
+def download_url(tmp_dir,filename):
+    dirpath = 'D:\\uploadtest\\' + tmp_dir
+    # 透過flask內建的send_from_directory
+    return send_from_directory(dirpath, filename, as_attachment=True)  # as_attachment=True 一定要寫，不然會變開啟，不是下載
 
-@app.route("/download_csv/<tmp_dir>/<filename>")
-def download_csv(tmp_dir,filename):
+
+@app.route("/download_csv_url/<tmp_dir>/<filename>")
+def download_csv_url(tmp_dir,filename):
     dirpath = 'D:\\uploadtest\\'+ tmp_dir  # 這個資料夾是要讓別人下載檔案的資料夾
-    # print(dirpath)
+    # excel_to_csv(dirpath) 這邊出現permission denied錯誤，暫時無解。
+    down_link='/download_url/'+ tmp_dir + '/'
     csv_list=[]
     csv_file= os.listdir(dirpath)
     for csv_file in csv_file:
         if csv_file.endswith('.csv'):
-            csv_list.append(csv_file)
-    # 透過flask內建的send_from_directory
-    return send_from_directory(dirpath, filename, as_attachment=True)  # as_attachment=True 一定要寫，不然會變開啟，不是下載
-    return '''
-        <!doctype html>
-        <title>Download CSV File</title>
-        <h1>Download CSV File</h1>
-        <form action="" method=post enctype=multipart/form-data>
-          <p><input type=file name=file>
-             <input type=submit value=Upload>
-        </form>
-        '''
+            csv_list.append(down_link + csv_file)
+
+    return render_template('csv_url.html',**locals())
+
+def excel_to_csv(dirpath):
+        myWorkbook = xlrd.open_workbook(dirpath)
+        mysheets = myWorkbook.sheets()
+        i= 0
+        for sheet in mysheets:
+            with open(dirpath.strip() + '\cust_insert.csv','w',encoding='utf-8')as csvWrite:
+                for row in sheet.get_rows():
+                    n = 0
+                    for cell in row:
+                        if type(cell.value) == float:
+                            tmp = int(cell.value)
+                            row[n] = str(tmp)
+                            n += 1
+                        else:
+                            row[n] = cell.value
+                            n += 1
+                    csvWrite.write(','.join(row) + '\n')
+                i += 1
+
 if __name__ == '__main__':
     app.run(debug=True)
