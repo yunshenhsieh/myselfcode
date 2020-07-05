@@ -4,21 +4,23 @@ def click_enter():
     try:
         myWorkbook = xlrd.open_workbook(file_locate.get())
         mysheets = myWorkbook.sheets()
-        i= 0
+        i= 0;col=[]
         for sheet in mysheets:
-            with open(path_locate.get().strip() + '\cust_insert.csv','w',encoding='utf-8')as csvWrite:
-                for row in sheet.get_rows():
-                    n = 0
-                    for cell in row:
-                        if type(cell.value) == float:
-                            tmp = int(cell.value)
-                            row[n] = str(tmp)
-                            n += 1
-                        else:
-                            row[n] = cell.value
-                            n += 1
-                    csvWrite.write(','.join(row) + '\n')
-                i += 1
+            for row in sheet.get_rows():
+                col.append(row)
+        with open(path_locate.get().strip() + '\cust_insert.csv','w',encoding='utf-8')as csvWrite:
+            for row in col[1:]:
+                n = 0
+                for cell in row:
+                    if type(cell.value) == float:
+                        tmp = int(cell.value)
+                        row[n] = str(tmp)
+                        n += 1
+                    else:
+                        row[n] = cell.value
+                        n += 1
+                csvWrite.write(','.join(row) + '\n')
+            i += 1
         msg.set('轉檔結束!!')
     except Exception as e:
         msg.set('轉檔失敗\n檔案格式或路徑不正確，請重新輸入。')
