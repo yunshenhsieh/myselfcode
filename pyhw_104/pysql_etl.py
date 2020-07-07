@@ -6,7 +6,7 @@ import pymysql
 host = 'localhost'
 port = 3306
 user = 'root'
-passwd = 'Rootroot12'
+passwd = 'mysqlroo'
 db = 'homework'
 charset = 'utf8mb4'
 
@@ -126,7 +126,7 @@ if k == 1:
                             post_time)
 
                     id+=1
-                    sql = 'INSERT INTO testetl (id,num,content) VALUES ({},{},"{}");'.format(id,page,content[0].text.split('※ 發信站')[0])
+                    sql = 'INSERT INTO testetl (id,num,content) VALUES ({},{},"{}");'.format(id,page,content[0].text.split('※ 發信站')[0].replace('"','＂'))
                     conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=db, charset=charset)
                     cursor = conn.cursor()
                     cursor.execute(sql)
@@ -149,7 +149,7 @@ if k == 1:
                     id += 1
                     sql = 'INSERT INTO testetl (id,num,content) VALUES ({},{},"{}");'.format(id, page,
                                                                                              content[0].text.split(
-                                                                                                 '※ 發信站')[0])
+                                                                                                 '※ 發信站')[0].replace('"','＂'))
                     conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=db, charset=charset)
                     cursor = conn.cursor()
                     cursor.execute(sql)
@@ -173,7 +173,7 @@ if k == 1:
                     id += 1
                     sql = 'INSERT INTO testetl (id,num,content) VALUES ({},{},"{}");'.format(id, page,
                                                                                              content[0].text.split(
-                                                                                                 '※ 發信站')[0])
+                                                                                                 '※ 發信站')[0].replace('"','＂'))
                     conn = pymysql.connect(host=host, port=port, user=user, passwd=passwd, db=db, charset=charset)
                     cursor = conn.cursor()
                     cursor.execute(sql)
