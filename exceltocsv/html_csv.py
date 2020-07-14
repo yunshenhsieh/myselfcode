@@ -7,12 +7,14 @@ def click_enter():
             tmp = f.read()
         soup = BeautifulSoup(tmp, 'html.parser')
         data = soup.select('td')
-        data = [item.text.replace('"', '').replace("=", '') for item in data]
+        data = [item.text.replace('"', '').strip().replace("=", '').strip() for item in data]
         data = [data[item:item + 12] for item in range(0, len(data), 12)]
-        with open(path_locate.get().strip() + '\cust_insert.csv', 'w', encoding='utf-8')as f:
-            for item in data:
-                f.write(str(item).replace("'", "").replace('[', '').replace(']', '').strip() + '\n')
-
+        for item in data:
+            with open(path_locate.get().strip() + '\cust_insert.csv', 'a', encoding='utf-8')as f:
+                s_tmp = ''
+                for i in item:
+                    s_tmp +=i + r','
+                f.write(s_tmp[:-1] + '\n')
         msg.set('轉檔結束!!')
     except Exception as e:
         msg.set('轉檔失敗\n檔案格式或路徑不正確，請重新輸入。')
