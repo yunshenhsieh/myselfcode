@@ -3,9 +3,9 @@ import smtplib
 
 def send_mail_for_me():
     '利用 Gmail 的服務寄發通知信'
-    send_gmail_user = 'xieworker@gmail.com'
-    send_gmail_password = 'g7054913'
-    rece_gmail_user = 'xieworker@gmail.com'
+    send_gmail_user = 'xxxxxxxxx@gmail.com'
+    send_gmail_password = 'your password'
+    rece_gmail_user = 'xxxxxxx@gmail.com'
 
     msg = MIMEText('imdb預算及海報爬蟲已停止')
 
