@@ -9,12 +9,15 @@ def click_enter():
         data = soup.select('td')
         data = [item.text.replace('"', '').strip().replace("=", '').strip() for item in data]
         data = [data[item:item + 12] for item in range(0, len(data), 12)]
+        num=len(data)
         for item in data:
-            with open(path_locate.get().strip() + '\cust_insert.csv', 'a', encoding='utf-8')as f:
-                s_tmp = ''
-                for i in item:
-                    s_tmp +=i + r','
-                f.write(s_tmp[:-1] + '\n')
+            s_tmp = ''
+            num-=1
+            for i in item:
+                s_tmp += i + r','
+            with open(path_locate.get().strip() + '/cust_insert.csv', 'a', encoding='big5')as f:
+                if num != 0:f.write(s_tmp[:-1] + '\n')
+                else:f.write(s_tmp[:-1])
         msg.set('轉檔結束!!')
     except Exception as e:
         msg.set('轉檔失敗\n檔案格式或路徑不正確，請重新輸入。')
