@@ -1,0 +1,13 @@
+1-1 : 利用ffmpeg下載串流影片的使用方法
+
+1-2 : ffmpeg -i "m3u8網址" -c copy media.mp4
+
+1-3 : 透過-i指令，下載串流影片，網址最好用雙引號標示，-c copy 告知影音編碼用複製就好，不需要再次轉碼，filename.mp4 使用mp4副檔名，直接告知存成mp4格式。
+
+2-1 : 利用ffmpeg離線合併
+
+2-2 : 可以使用ffmpeg直接合併上述下載的分片檔案，既然是串流播放，那麼就會有m3u8 list提供給播放器，當作串流依據，所以只要找到這個檔案，接著在透過ffmpeg就可以合併了。
+2-3 : ffmpeg -i media.m3u8 -c copy media.ts
+
+2-4 : 合併完後會是M2T的格式，是可以正常透過一般播放器播放，也可以轉成mp4格式。
+2-5 : ffmpeg -i media.ts -vcodec copy -acodec copy media.mp4
