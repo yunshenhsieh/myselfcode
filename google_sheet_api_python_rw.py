@@ -1,5 +1,5 @@
 # Teach video : https://www.youtube.com/watch?v=4ssigWmExak&list=PLxjXsyRHpX_hmj6048cCcMYvq5llD5cKO
-# Version 1.0.1
+# Version 1.0.2
 # pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
@@ -44,3 +44,17 @@ while True:
         insert_data = [input_data]
         request = sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                                     valueInputOption="USER_ENTERED",body={"values":insert_data}).execute()
+        
+
+'''new_sheet_name跟sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
+    是用來產生google sheet新分頁(sheet)用的'''
+new_sheet_name = {
+    'requests':[{
+        'addSheet':{
+            'properties':{
+                'title':'new_sheet_work'
+            }
+        }
+    }]
+}
+sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
