@@ -58,39 +58,7 @@ def tdm_data_to_excel():
             wt_values(worksheet, row, content)
     workbook.save('vital_sign.xls')
 
-def moon_test_answer():
-    with open('./moodle_test_result.txt','r',encoding='utf-8')as f:
-        tmp = f.read()
-    # 配合題題數
-    match_question_num = 16
-    match_question_num = match_question_num - 1
-
-    soup = BeautifulSoup(tmp, 'html.parser')
-    # 題目
-    question_list = []
-    for i in soup.select('div.qtext'):
-        question_list.append(i.text.strip())
-    # 答案
-    ans_list = []
-    for i in soup.select('div.rightanswer'):
-        ans_list.append(i.text)
-
-    # 排整齊答案用
-    for i in range(len(ans_list)):
-        ans_list[i] = ans_list[i].replace('\n', ' ')
-
-    # 排整齊配合題用
-    ans_list[match_question_num] = ans_list[match_question_num].split(',')
-    ans_list[match_question_num][0] = ans_list[match_question_num][0].replace('：', '：\n')
-    for i in range(len(ans_list[match_question_num])):
-        ans_list[match_question_num][i] = ans_list[match_question_num][i].strip()
-    ans_list[match_question_num] = ',\n'.join(ans_list[match_question_num])
-
-    with open('./moodle_ans.txt','w',encoding='utf-8')as w:
-        for i in range(len(question_list)):
-            w.write(str(i + 1) + '、' + question_list[i].replace('\n', ' ') + '\n')
-            w.write(ans_list[i] + '\n' + '\n')
-
+    
 if __name__ == "__main__":
-    moon_test_answer()
+    tdm_data_to_excel()
 
