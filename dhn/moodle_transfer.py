@@ -1,5 +1,5 @@
-def moon_test_answer_txt():
-    with open('./moodle_test_result.txt','r',encoding='utf-8')as f:
+def moon_test_answer_txt(filepath):
+    with open(filepath,'r',encoding='utf-8')as f:
         tmp = f.read()
     # 配合題題數
     match_question_num = 16
@@ -37,7 +37,7 @@ def moon_test_answer_txt():
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
-def moon_test_answer_gsheet(sheet_name):
+def moon_test_answer_gsheet(sheet_name, filepath):
 
     # If modifying these scopes, delete the file token.json.
     SERVICE_ACCOUNT_FILE = '<API key file name>.json'
@@ -51,7 +51,7 @@ def moon_test_answer_gsheet(sheet_name):
     # Call the Sheets API
     sheet = service.spreadsheets()
 
-    with open('./moodle_test_result.txt','r',encoding='utf-8')as f:
+    with open(filepath,'r',encoding='utf-8')as f:
         tmp = f.read()
     # 配合題題號
     match_question_num = 16
@@ -91,23 +91,15 @@ def moon_test_answer_gsheet(sheet_name):
     # 建立工作表新分頁
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
 
-
-    question_row = 1
-    answer_row = 2
+    data_finish = []
     for i in range(len(question_list)):
-        # 下面四行為寫入題目的部份
-        SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, i + question_row)
-        insert_data = [[str(i + 1) + '、' + question_list[i].replace('\n', ' ')]]
-        sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
-                                        valueInputOption="USER_ENTERED", body={"values": insert_data}).execute()
-        question_row += 2
+        data_finish.append([str(i + 1) + '、' + question_list[i].replace('\n', ' ')])
+        data_finish.append([ans_list[i]])
+        data_finish.append([])
 
-        # 下面四行為寫入答案的部份
-        SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, i + answer_row)
-        insert_data = [[ans_list[i]]]
-        sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
-                              valueInputOption="USER_ENTERED", body={"values": insert_data}).execute()
-        answer_row += 2
+    SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, 1)
+    sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
+                                        valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
 
 
 if __name__ == "__main__":
