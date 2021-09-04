@@ -78,6 +78,13 @@ def moon_test_answer_gsheet(sheet_name, filepath):
         ans_list[match_question_num][i] = ans_list[match_question_num][i].strip()
     ans_list[match_question_num] = ',\n'.join(ans_list[match_question_num])
 
+    # 整理成寫入google sheet的格式
+    data_finish = []
+    for i in range(len(question_list)):
+        data_finish.append([str(i + 1) + '、' + question_list[i].replace('\n', ' ')])
+        data_finish.append([ans_list[i]])
+        data_finish.append([])
+        
     # 工作表新分頁的設定
     new_sheet_name = {
         'requests': [{
@@ -90,13 +97,8 @@ def moon_test_answer_gsheet(sheet_name, filepath):
     }
     # 建立工作表新分頁
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
-
-    data_finish = []
-    for i in range(len(question_list)):
-        data_finish.append([str(i + 1) + '、' + question_list[i].replace('\n', ' ')])
-        data_finish.append([ans_list[i]])
-        data_finish.append([])
-
+    
+    # 寫入資料到google sheet
     SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, 1)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                                         valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
