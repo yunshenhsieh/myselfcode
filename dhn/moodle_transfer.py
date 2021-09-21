@@ -36,16 +36,18 @@ def moon_test_answer_txt(filepath):
 # pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
+from dotenv import load_dotenv
+import os
 
 def moon_test_answer_gsheet(sheet_name, filepath):
 
     # If modifying these scopes, delete the file token.json.
-    SERVICE_ACCOUNT_FILE = '<API key file name>.json'
+    SERVICE_ACCOUNT_FILE = '../{}'.format(os.getenv('py_gsheet_key_filename'))
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
     creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     # The ID and range of a sample spreadsheet.
     # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
-    SAMPLE_SPREADSHEET_ID = '<google sheet ID>'
+    SAMPLE_SPREADSHEET_ID = os.getenv('moon_test_answer_gsheet_id')
     service = build('sheets', 'v4', credentials=creds)
 
     # Call the Sheets API
@@ -53,7 +55,7 @@ def moon_test_answer_gsheet(sheet_name, filepath):
 
     with open(filepath,'r',encoding='utf-8')as f:
         tmp = f.read()
-    # 配合題題號
+    # 配合題題數
     match_question_num = 16
     match_question_num = match_question_num - 1
 
@@ -84,25 +86,53 @@ def moon_test_answer_gsheet(sheet_name, filepath):
         data_finish.append([str(i + 1) + '、' + question_list[i].replace('\n', ' ')])
         data_finish.append([ans_list[i]])
         data_finish.append([])
-        
+
     # 工作表新分頁的設定
     new_sheet_name = {
         'requests': [{
             'addSheet': {
                 'properties': {
-                    'title': sheet_name
+                    'sheetId':int(sheet_name[0]),
+                    'title': sheet_name[1:]
                 }
             }
         }]
     }
     # 建立工作表新分頁
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
-    
+
     # 寫入資料到google sheet
     SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, 1)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                                         valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
 
+    
+def delete_gsheet(sheet_id, gsheet_name_id):
+    # If modifying these scopes, delete the file token.json.
+    SERVICE_ACCOUNT_FILE = '../{}'.format(os.getenv('py_gsheet_key_filename'))
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    # The ID and range of a sample spreadsheet.
+    # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
+    SAMPLE_SPREADSHEET_ID = gsheet_name_id
+    service = build('sheets', 'v4', credentials=creds)
+
+    # Call the Sheets API
+    sheet = service.spreadsheets()
+
+    # 工作表新分頁的設定
+    new_sheet_name = {
+        'requests': [{
+            'deleteSheet': {
+                'sheetId':sheet_id
+            }
+        }]
+    }
+    # 建立工作表新分頁
+    sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
 
 if __name__ == "__main__":
-    moon_test_answer_gsheet('202108')
+    load_dotenv()
+    moon_test_answer_gsheet('0八月月考', filepath)
+    gsheet_id = os.getenv('moon_test_answer_gsheet_id')
+    delete_gsheet(<sheet id>, gsheet_id)
