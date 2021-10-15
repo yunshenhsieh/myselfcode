@@ -92,8 +92,8 @@ def moon_test_answer_gsheet(sheet_name, filepath):
         'requests': [{
             'addSheet': {
                 'properties': {
-                    'sheetId':int(sheet_name[0]),
-                    'title': sheet_name[1:]
+                    'sheetId':int(sheet_name),
+                    'title': sheet_name
                 }
             }
         }]
