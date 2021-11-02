@@ -1,4 +1,8 @@
-def moon_test_answer_txt(filepath):
+import os
+from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
+def moon_test_main(filepath) -> [[str]]:
     with open(filepath,'r',encoding='utf-8')as f:
         tmp = f.read()
     # 配合題題數
@@ -20,24 +24,23 @@ def moon_test_answer_txt(filepath):
         ans_list[i] = ans_list[i].replace('\n', ' ')
 
     # 排整齊配合題用
-    ans_list[match_question_num] = ans_list[match_question_num].split(',')
+    ans_list[match_question_num] = ans_list[match_question_num].split(', ')
     ans_list[match_question_num][0] = ans_list[match_question_num][0].replace('：', '：\n')
     for i in range(len(ans_list[match_question_num])):
         ans_list[match_question_num][i] = ans_list[match_question_num][i].strip()
     ans_list[match_question_num] = ',\n'.join(ans_list[match_question_num])
 
-    with open('./moodle_ans.txt','w',encoding='utf-8')as w:
-        for i in range(len(question_list)):
-            w.write(str(i + 1) + '、' + question_list[i].replace('\n', ' ') + '\n')
-            w.write(ans_list[i] + '\n' + '\n')
+    # 整理成寫入google sheet的格式
+    data_finish = []
+    for i in range(len(question_list)):
+        data_finish.append([str(i + 1) + '、' + question_list[i].replace('\n', ' ')])
+        data_finish.append([ans_list[i]])
+        data_finish.append([])
 
-            
-# Teach video : https://www.youtube.com/watch?v=4ssigWmExak&list=PLxjXsyRHpX_hmj6048cCcMYvq5llD5cKO
-# pip install --upgrade google-api-python-client google-auth-httplib2 google-auth-oauthlib
+    return data_finish
+
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
-from dotenv import load_dotenv
-import os
 
 def moon_test_answer_gsheet(sheet_name, filepath):
 
@@ -53,47 +56,15 @@ def moon_test_answer_gsheet(sheet_name, filepath):
     # Call the Sheets API
     sheet = service.spreadsheets()
 
-    with open(filepath,'r',encoding='utf-8')as f:
-        tmp = f.read()
-    # 配合題題數
-    match_question_num = 16
-    match_question_num = match_question_num - 1
-
-    soup = BeautifulSoup(tmp, 'html.parser')
-    # 題目
-    question_list = []
-    for i in soup.select('div.qtext'):
-        question_list.append(i.text.strip())
-    # 答案
-    ans_list = []
-    for i in soup.select('div.rightanswer'):
-        ans_list.append(i.text)
-
-    # 排整齊答案用
-    for i in range(len(ans_list)):
-        ans_list[i] = ans_list[i].replace('\n', ' ')
-
-    # 排整齊配合題用
-    ans_list[match_question_num] = ans_list[match_question_num].split(',')
-    ans_list[match_question_num][0] = ans_list[match_question_num][0].replace('：', '：\n')
-    for i in range(len(ans_list[match_question_num])):
-        ans_list[match_question_num][i] = ans_list[match_question_num][i].strip()
-    ans_list[match_question_num] = ',\n'.join(ans_list[match_question_num])
-
-    # 整理成寫入google sheet的格式
-    data_finish = []
-    for i in range(len(question_list)):
-        data_finish.append([str(i + 1) + '、' + question_list[i].replace('\n', ' ')])
-        data_finish.append([ans_list[i]])
-        data_finish.append([])
+    data_finish = moon_test_main(filepath)
 
     # 工作表新分頁的設定
     new_sheet_name = {
         'requests': [{
             'addSheet': {
                 'properties': {
-                    'sheetId':int(sheet_name),
-                    'title': sheet_name
+                    'sheetId':sheet_name,
+                    'title': str(sheet_name)
                 }
             }
         }]
@@ -133,6 +104,6 @@ def delete_gsheet(sheet_id, gsheet_name_id):
 
 if __name__ == "__main__":
     load_dotenv()
-    moon_test_answer_gsheet('0八月月考', filepath)
+    moon_test_answer_gsheet(<sheet id>, filepath)
     gsheet_id = os.getenv('moon_test_answer_gsheet_id')
     delete_gsheet(<sheet id>, gsheet_id)
