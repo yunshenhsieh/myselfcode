@@ -65,6 +65,8 @@ def moon_test_answer_gsheet(sheet_name, filepath):
                 'properties': {
                     'sheetId':sheet_name,
                     'title': str(sheet_name)
+                    # set the sheet to be first
+                    'index': 0
                 }
             }
         }]
@@ -77,8 +79,6 @@ def moon_test_answer_gsheet(sheet_name, filepath):
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                                         valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
     
-    move_gsheet(SAMPLE_SPREADSHEET_ID)
-
     
 def delete_gsheet(sheet_id, gsheet_name_id):
     # If modifying these scopes, delete the file token.json.
