@@ -76,6 +76,8 @@ def moon_test_answer_gsheet(sheet_name, filepath):
     SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, 1)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                                         valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
+    
+    move_gsheet(SAMPLE_SPREADSHEET_ID)
 
     
 def delete_gsheet(sheet_id, gsheet_name_id):
@@ -91,7 +93,7 @@ def delete_gsheet(sheet_id, gsheet_name_id):
     # Call the Sheets API
     sheet = service.spreadsheets()
 
-    # 工作表新分頁的設定
+    # delete sheet json
     new_sheet_name = {
         'requests': [{
             'deleteSheet': {
@@ -99,8 +101,33 @@ def delete_gsheet(sheet_id, gsheet_name_id):
             }
         }]
     }
-    # 建立工作表新分頁
+    # delete sheet exe
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
+    
+def move_gsheet(gsheet_name_id):
+    # If modifying these scopes, delete the file token.json.
+    SERVICE_ACCOUNT_FILE = '../{}'.format(os.getenv('py_gsheet_key_filename'))
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    # The ID and range of a sample spreadsheet.
+    # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
+    SAMPLE_SPREADSHEET_ID = gsheet_name_id
+    service = build('sheets', 'v4', credentials=creds)
+
+    # get workbook all information
+    response = service.spreadsheets().get(spreadsheetId=SAMPLE_SPREADSHEET_ID).execute()
+
+    # set the last sheet index let it to become first sheet.
+    response['sheets'][-1]['properties']['index'] = 0
+
+    reqs = {'requests': [
+        {'updateSheetProperties': {
+            'properties': response['sheets'][-1]['properties'],
+            'fields': '*'
+        }}
+    ]}
+    service.spreadsheets().batchUpdate(
+        spreadsheetId=SAMPLE_SPREADSHEET_ID, body=reqs).execute()
 
 if __name__ == "__main__":
     load_dotenv()
