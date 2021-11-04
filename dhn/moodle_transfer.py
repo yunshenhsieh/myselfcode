@@ -64,7 +64,7 @@ def moon_test_answer_gsheet(sheet_name, filepath):
             'addSheet': {
                 'properties': {
                     'sheetId':sheet_name,
-                    'title': str(sheet_name)
+                    'title': str(sheet_name),
                     # set the sheet to be first
                     'index': 0
                 }
