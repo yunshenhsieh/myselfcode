@@ -74,38 +74,39 @@ def moon_test_answer_gsheet(sheet_name, filepath):
     # 建立工作表新分頁
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
     
-    # set backgroundcolor
+    # set backgroundcolor by batchupdate
+    backgroundcolor_requests = []
     for i in range(2,45,3):
-        backgroundcolor_body = {
-            "requests": [
-                {
-                    "repeatCell": {
-                        "range": {
-                            "sheetId": sheet_name,
-                            "startRowIndex": i,
-                            "endRowIndex": i + 1,
-                            "startColumnIndex": 0,
-                            "endColumnIndex": 7
+        backgroundcolor_requests.append(
+            {
+            "repeatCell": {
+                "range": {
+                    "sheetId": sheet_name,
+                    "startRowIndex": i,
+                    "endRowIndex": i + 1,
+                    "startColumnIndex": 0,
+                    "endColumnIndex": 7
+                },
+                "cell": {
+                    "userEnteredFormat": {
+                        "backgroundColor": {
+                            # "red": 255/255,
+                            # "green": 255/255,
+                            # "blue": 255/255
+                            "red": 0/255,
+                            "green": 0/255,
+                            "blue": 0/255
                         },
-                        "cell": {
-                            "userEnteredFormat": {
-                                "backgroundColor": {
-                                    # "red": 255/255,
-                                    # "green": 255/255,
-                                    # "blue": 255/255
-                                    "red": 0/255,
-                                    "green": 0/255,
-                                    "blue": 0/255
-                                },
-                            }
-                        },
-                        "fields": "userEnteredFormat(backgroundColor)"
                     }
-                }
-            ]
-        }
-        service.spreadsheets().batchUpdate(
-            spreadsheetId=SAMPLE_SPREADSHEET_ID, body=backgroundcolor_body).execute()
+                },
+                "fields": "userEnteredFormat(backgroundColor)"
+            }
+            }
+        )
+
+    backgroundcolor_body = {"requests": backgroundcolor_requests}
+    service.spreadsheets().batchUpdate(
+        spreadsheetId=SAMPLE_SPREADSHEET_ID, body=backgroundcolor_body).execute()
 
     # 寫入資料到google sheet
     SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, 1)
