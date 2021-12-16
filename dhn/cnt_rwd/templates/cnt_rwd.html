@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>門診盤點</title>
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		.wrap{
+			width: 100%;
+			max-width: 1200px;
+		}
+		.item{
+			background-color: #ffa;
+			margin:0px 10px 20px;
+		}
+		input[type='number']{
+            width: 80px;
+            font-size: 20px;
+        }
+        input[type='text']{
+            width: 60px;
+            font-size: 20px;
+        }
+	</style>
+
+</head>
+<body>
+<div class="wrap">
+	<div class="item">
+    <form method="get" action="{{ url_for('demo')}}">
+        <br>
+		<h1>姓名：</h1>
+        <br>
+        <h1>料位號：<input type="text"></h1>
+        <br>
+        <h1>100 * <input id="input-100" type="number" name="input100"> = <em id="multi-100-prev">0</em></h1>
+        <h1>56 * <input id="input-56" type="number" name="input56"> = <em id="multi-56-prev">0</em></h1>
+        <h1>28 * <input id="input-28" type="number" name="input28"> = <em id="multi-28-prev">0</em></h1>
+        <h1>21 * <input id="input-21" type="number" name="input21"> = <em id="multi-21-prev">0</em></h1>
+        <h1>14 * <input id="input-14" type="number" name="input14"> = <em id="multi-14-prev">0</em></h1>
+        <h1>10 * <input id="input-10" type="number" name="input10"> = <em id="multi-10-prev">0</em></h1>
+        <h1>7 * <input id="input-7" type="number" name="input7"> = <em id="multi-7-prev">0</em></h1>
+        <h1>1 * <input id="input-1" type="number" name="input1"> = <em id="multi-1-prev">0</em></h1>
+        <h1>總合：<em id="cnt-sum-prev">0</em></h1>
+
+<!--        <input id="multi-sum-100" name="multiSum100" type="hidden">-->
+<!--        <input id="multi-sum-56" name="multiSum56" type="hidden">-->
+<!--        <input id="multi-sum-28" name="multiSum28" type="hidden">-->
+<!--        <input id="multi-sum-21" name="multiSum21" type="hidden">-->
+<!--        <input id="multi-sum-14" name="multiSum14" type="hidden">-->
+<!--        <input id="multi-sum-10" name="multiSum10" type="hidden">-->
+<!--        <input id="multi-sum-7" name="multiSum7" type="hidden">-->
+<!--        <input id="multi-sum-1" name="multiSum1" type="hidden">-->
+        <input id="multi-sum-cnt" name="multiSumCnt" type="hidden">
+
+        <h1>自行輸入：<input id="input-free" type="text" name="inputFree"> = <em id="input-free-prev">0</em></h1>
+        <input id="multi-sum-free" name="multiSumFree" type="hidden">
+
+        <p>
+        <input type='text' name='username' />
+    </p>
+        <p>
+        <button type='submit'>Submit</button>
+    </p>
+    </form>
+    </div>
+</div>
+    <script type="text/javascript">function sumPrev(){
+            var input_100 = document.getElementById("input-100").value;
+            input_100 = Number(input_100);
+            if (input_100){
+                input_100 = input_100 * 100
+            	document.getElementById("multi-100-prev").innerHTML= input_100;
+            }else{
+            	document.getElementById("multi-100-prev").innerHTML= 0;
+            }
+
+            var input_56 = document.getElementById("input-56").value;
+            input_56 = Number(input_56);
+            if (input_56){
+                input_56 = input_56 * 56
+            	document.getElementById("multi-56-prev").innerHTML= input_56;
+            }else{
+            	document.getElementById("multi-56-prev").innerHTML= 0;
+            }
+
+            var input_28 = document.getElementById("input-28").value;
+            input_28 = Number(input_28);
+            if (input_28){
+                input_28 = input_28 * 28
+            	document.getElementById("multi-28-prev").innerHTML= input_28;
+            }else{
+            	document.getElementById("multi-28-prev").innerHTML= 0;
+            }
+
+            var input_21 = document.getElementById("input-21").value;
+            input_21 = Number(input_21);
+            if (input_21){
+                input_21 = input_21 * 21
+            	document.getElementById("multi-21-prev").innerHTML= input_21;
+            }else{
+            	document.getElementById("multi-21-prev").innerHTML= 0;
+            }
+
+            var input_14 = document.getElementById("input-14").value;
+            input_14 = Number(input_14);
+            if (input_14){
+                input_14 = input_14 * 14
+            	document.getElementById("multi-14-prev").innerHTML= input_14;
+            }else{
+            	document.getElementById("multi-14-prev").innerHTML= 0;
+            }
+
+            var input_10 = document.getElementById("input-10").value;
+            input_10 = Number(input_10);
+            if (input_10){
+                input_10 = input_10 * 10
+            	document.getElementById("multi-10-prev").innerHTML= input_10;
+            }else{
+            	document.getElementById("multi-10-prev").innerHTML= 0;
+            }
+
+            var input_7 = document.getElementById("input-7").value;
+            input_7 = Number(input_7);
+            if (input_7){
+                input_7 = input_7 * 7
+            	document.getElementById("multi-7-prev").innerHTML= input_7;
+            }else{
+            	document.getElementById("multi-7-prev").innerHTML= 0;
+            }
+
+            var input_1 = document.getElementById("input-1").value;
+            input_1 = Number(input_1);
+            if (input_1){
+                input_1 = input_1
+            	document.getElementById("multi-1-prev").innerHTML= input_1;
+            }else{
+            	document.getElementById("multi-1-prev").innerHTML= 0;
+            }
+
+            var input_sum = input_100 + input_56 + input_28 + input_21 + input_14 + input_10 + input_7 + input_1;
+            document.getElementById("cnt-sum-prev").innerHTML = input_sum;
+            window.setInterval("sumPrev()",5);
+        }</script>
+
+    <script type="text/javascript">function sumFree(){
+        var input_free = document.getElementById("input-free").value;
+        input_free = eval(input_free);
+        if (input_free){
+            	document.getElementById("input-free-prev").innerHTML= input_free;
+            }else{
+            	document.getElementById("input-free-prev").innerHTML= 0;
+            }
+        window.setInterval("sumFree()",5);
+    }
+    </script>
+    <script type="text/javascript">window.onload = sumPrev();window.onload = sumFree();</script>
+</body>
+</html>
