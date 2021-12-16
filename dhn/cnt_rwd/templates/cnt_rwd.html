@@ -32,9 +32,9 @@
 <body>
 <div class="wrap">
 	<div class="item">
-    <form method="get" action="{{ url_for('demo')}}">
+    <form method="get" action="{{ url_for('cnt')}}">
         <br>
-		<h1>姓名：</h1>
+		<h1>姓名：{{userName}}</h1>
         <br>
         <h1>料位號：<input type="text"></h1>
         <br>
@@ -48,15 +48,8 @@
         <h1>1 * <input id="input-1" type="number" name="input1"> = <em id="multi-1-prev">0</em></h1>
         <h1>總合：<em id="cnt-sum-prev">0</em></h1>
 
-<!--        <input id="multi-sum-100" name="multiSum100" type="hidden">-->
-<!--        <input id="multi-sum-56" name="multiSum56" type="hidden">-->
-<!--        <input id="multi-sum-28" name="multiSum28" type="hidden">-->
-<!--        <input id="multi-sum-21" name="multiSum21" type="hidden">-->
-<!--        <input id="multi-sum-14" name="multiSum14" type="hidden">-->
-<!--        <input id="multi-sum-10" name="multiSum10" type="hidden">-->
-<!--        <input id="multi-sum-7" name="multiSum7" type="hidden">-->
-<!--        <input id="multi-sum-1" name="multiSum1" type="hidden">-->
-        <input id="multi-sum-cnt" name="multiSumCnt" type="hidden">
+        <input id="return-data" name="returnData" type="hidden">
+
 
         <h1>自行輸入：<input id="input-free" type="text" name="inputFree"> = <em id="input-free-prev">0</em></h1>
         <input id="multi-sum-free" name="multiSumFree" type="hidden">
@@ -73,89 +66,106 @@
     <script type="text/javascript">function sumPrev(){
             var input_100 = document.getElementById("input-100").value;
             input_100 = Number(input_100);
+            input100 = 0
             if (input_100){
-                input_100 = input_100 * 100
-            	document.getElementById("multi-100-prev").innerHTML= input_100;
+                input100 = input_100 * 100
+            	document.getElementById("multi-100-prev").innerHTML= input100;
             }else{
             	document.getElementById("multi-100-prev").innerHTML= 0;
             }
 
             var input_56 = document.getElementById("input-56").value;
             input_56 = Number(input_56);
+            input56 = 0
             if (input_56){
-                input_56 = input_56 * 56
-            	document.getElementById("multi-56-prev").innerHTML= input_56;
+                input56 = input_56 * 56
+            	document.getElementById("multi-56-prev").innerHTML= input56;
             }else{
             	document.getElementById("multi-56-prev").innerHTML= 0;
             }
 
             var input_28 = document.getElementById("input-28").value;
             input_28 = Number(input_28);
+            input28 = 0
             if (input_28){
-                input_28 = input_28 * 28
-            	document.getElementById("multi-28-prev").innerHTML= input_28;
+                input28 = input_28 * 28
+            	document.getElementById("multi-28-prev").innerHTML= input28;
             }else{
             	document.getElementById("multi-28-prev").innerHTML= 0;
             }
 
             var input_21 = document.getElementById("input-21").value;
             input_21 = Number(input_21);
+            input21 = 0
             if (input_21){
-                input_21 = input_21 * 21
-            	document.getElementById("multi-21-prev").innerHTML= input_21;
+                input21 = input_21 * 21
+            	document.getElementById("multi-21-prev").innerHTML= input21;
             }else{
             	document.getElementById("multi-21-prev").innerHTML= 0;
             }
 
             var input_14 = document.getElementById("input-14").value;
             input_14 = Number(input_14);
+            input14 = 0
             if (input_14){
-                input_14 = input_14 * 14
-            	document.getElementById("multi-14-prev").innerHTML= input_14;
+                input14 = input_14 * 14
+            	document.getElementById("multi-14-prev").innerHTML= input14;
             }else{
             	document.getElementById("multi-14-prev").innerHTML= 0;
             }
 
             var input_10 = document.getElementById("input-10").value;
             input_10 = Number(input_10);
+            input10 = 0
             if (input_10){
-                input_10 = input_10 * 10
-            	document.getElementById("multi-10-prev").innerHTML= input_10;
+                input10 = input_10 * 10
+            	document.getElementById("multi-10-prev").innerHTML= input10;
             }else{
             	document.getElementById("multi-10-prev").innerHTML= 0;
             }
 
             var input_7 = document.getElementById("input-7").value;
             input_7 = Number(input_7);
+            input7 = 0
             if (input_7){
-                input_7 = input_7 * 7
-            	document.getElementById("multi-7-prev").innerHTML= input_7;
+                input7 = input_7 * 7
+            	document.getElementById("multi-7-prev").innerHTML= input7;
             }else{
             	document.getElementById("multi-7-prev").innerHTML= 0;
             }
 
             var input_1 = document.getElementById("input-1").value;
             input_1 = Number(input_1);
+            input1 = 0
             if (input_1){
-                input_1 = input_1
-            	document.getElementById("multi-1-prev").innerHTML= input_1;
+                input1 = input_1
+            	document.getElementById("multi-1-prev").innerHTML= input1;
             }else{
             	document.getElementById("multi-1-prev").innerHTML= 0;
             }
 
-            var input_sum = input_100 + input_56 + input_28 + input_21 + input_14 + input_10 + input_7 + input_1;
+            var input_sum = input100 + input56 + input28 + input21 + input14 + input10 + input7 + input1;
             document.getElementById("cnt-sum-prev").innerHTML = input_sum;
+
+            var dataJson = {100: input_100, 56: input_56, 28: input_28, 21: input_21, 14: input_14,
+                            10: input_10, 7: input_7, 1: input_1, "sum": input_sum}
+
+            dataJson = JSON.stringify(dataJson);
+            document.getElementById("return-data").value = dataJson;
             window.setInterval("sumPrev()",5);
         }</script>
 
     <script type="text/javascript">function sumFree(){
         var input_free = document.getElementById("input-free").value;
-        input_free = eval(input_free);
-        if (input_free){
-            	document.getElementById("input-free-prev").innerHTML= input_free;
+        inputFree = eval(input_free);
+        if (inputFree){
+            	document.getElementById("input-free-prev").innerHTML= inputFree;
             }else{
             	document.getElementById("input-free-prev").innerHTML= 0;
             }
+        var dataJsonFree = {inputFree: [input_free, inputFree]}
+        dataJsonFree = JSON.stringify(dataJsonFree);
+        document.getElementById("multi-sum-free").value = dataJsonFree;
         window.setInterval("sumFree()",5);
     }
     </script>
