@@ -32,11 +32,11 @@
 <body>
 <div class="wrap">
 	<div class="item">
-    <form method="get" action="{{ url_for('cnt')}}">
+    <form method="get" action="{{ url_for('addData')}}">
         <br>
-		<h1>姓名：{{userName}}</h1>
+        <h1>姓名：<em id="user-name" name="userName">{{userName}}</em></h1>
         <br>
-        <h1>料位號：<input type="text"></h1>
+        <h1>料位號：<input id="drug-code" type="text" name="drugCode"></h1>
         <br>
         <h1>100 * <input id="input-100" type="number" name="input100"> = <em id="multi-100-prev">0</em></h1>
         <h1>56 * <input id="input-56" type="number" name="input56"> = <em id="multi-56-prev">0</em></h1>
@@ -48,23 +48,33 @@
         <h1>1 * <input id="input-1" type="number" name="input1"> = <em id="multi-1-prev">0</em></h1>
         <h1>總合：<em id="cnt-sum-prev">0</em></h1>
 
-        <input id="return-data" name="returnData" type="hidden">
-
-
         <h1>自行輸入：<input id="input-free" type="text" name="inputFree"> = <em id="input-free-prev">0</em></h1>
-        <input id="multi-sum-free" name="multiSumFree" type="hidden">
 
         <p>
-        <input type='text' name='username' />
-    </p>
-        <p>
-        <button type='submit'>Submit</button>
+        <input id="return-data" name="returnData" type="hidden"></input>
+        <button type="submit" onclick="checkData()">送出</button>
+        <button type="reset" onclick="alertReset()">清除</button>
     </p>
     </form>
     </div>
 </div>
+    <script type="text/javascript">
+    var dataJson;
+    var dataJsonFree;
+
+    var input_100;
+    var input_56;
+    var input_28;
+    var input_21;
+    var input_14;
+    var input_10;
+    var input_7;
+    var input_1;
+    var input_sum;
+    var input_free;</script>
+
     <script type="text/javascript">function sumPrev(){
-            var input_100 = document.getElementById("input-100").value;
+            input_100 = document.getElementById("input-100").value;
             input_100 = Number(input_100);
             input100 = 0
             if (input_100){
@@ -74,7 +84,7 @@
             	document.getElementById("multi-100-prev").innerHTML= 0;
             }
 
-            var input_56 = document.getElementById("input-56").value;
+            input_56 = document.getElementById("input-56").value;
             input_56 = Number(input_56);
             input56 = 0
             if (input_56){
@@ -84,7 +94,7 @@
             	document.getElementById("multi-56-prev").innerHTML= 0;
             }
 
-            var input_28 = document.getElementById("input-28").value;
+            input_28 = document.getElementById("input-28").value;
             input_28 = Number(input_28);
             input28 = 0
             if (input_28){
@@ -94,7 +104,7 @@
             	document.getElementById("multi-28-prev").innerHTML= 0;
             }
 
-            var input_21 = document.getElementById("input-21").value;
+            input_21 = document.getElementById("input-21").value;
             input_21 = Number(input_21);
             input21 = 0
             if (input_21){
@@ -104,7 +114,7 @@
             	document.getElementById("multi-21-prev").innerHTML= 0;
             }
 
-            var input_14 = document.getElementById("input-14").value;
+            input_14 = document.getElementById("input-14").value;
             input_14 = Number(input_14);
             input14 = 0
             if (input_14){
@@ -114,7 +124,7 @@
             	document.getElementById("multi-14-prev").innerHTML= 0;
             }
 
-            var input_10 = document.getElementById("input-10").value;
+            input_10 = document.getElementById("input-10").value;
             input_10 = Number(input_10);
             input10 = 0
             if (input_10){
@@ -124,7 +134,7 @@
             	document.getElementById("multi-10-prev").innerHTML= 0;
             }
 
-            var input_7 = document.getElementById("input-7").value;
+            input_7 = document.getElementById("input-7").value;
             input_7 = Number(input_7);
             input7 = 0
             if (input_7){
@@ -134,7 +144,7 @@
             	document.getElementById("multi-7-prev").innerHTML= 0;
             }
 
-            var input_1 = document.getElementById("input-1").value;
+            input_1 = document.getElementById("input-1").value;
             input_1 = Number(input_1);
             input1 = 0
             if (input_1){
@@ -144,31 +154,39 @@
             	document.getElementById("multi-1-prev").innerHTML= 0;
             }
 
-            var input_sum = input100 + input56 + input28 + input21 + input14 + input10 + input7 + input1;
+            input_sum = input100 + input56 + input28 + input21 + input14 + input10 + input7 + input1;
             document.getElementById("cnt-sum-prev").innerHTML = input_sum;
 
-            var dataJson = {100: input_100, 56: input_56, 28: input_28, 21: input_21, 14: input_14,
-                            10: input_10, 7: input_7, 1: input_1, "sum": input_sum}
-
-            dataJson = JSON.stringify(dataJson);
-            document.getElementById("return-data").value = dataJson;
-            window.setInterval("sumPrev()",5);
         }</script>
 
     <script type="text/javascript">function sumFree(){
-        var input_free = document.getElementById("input-free").value;
+        input_free = document.getElementById("input-free").value;
         inputFree = eval(input_free);
         if (inputFree){
             	document.getElementById("input-free-prev").innerHTML= inputFree;
             }else{
             	document.getElementById("input-free-prev").innerHTML= 0;
             }
-        var dataJsonFree = {inputFree: [input_free, inputFree]}
-        dataJsonFree = JSON.stringify(dataJsonFree);
-        document.getElementById("multi-sum-free").value = dataJsonFree;
-        window.setInterval("sumFree()",5);
     }
     </script>
-    <script type="text/javascript">window.onload = sumPrev();window.onload = sumFree();</script>
+    <script type="text/javascript">function checkData(){
+        dataJson = {100: input_100, 56: input_56, 28: input_28, 21: input_21, 14: input_14,
+                    10: input_10, 7: input_7, 1: input_1, "sum": input_sum}
+
+        dataJsonFree = {inputFree: [input_free, inputFree]}
+
+        var drugCode = document.getElementById("drug-code").value;
+        var userName = document.getElementById("user-name").innerHTML;
+
+        totalData = JSON.stringify([userName, drugCode, dataJson, dataJsonFree]);
+        document.getElementById("return-data").value = totalData;
+        }</script>
+    <script type="text/javascript">function alertReset(){
+        }</script>
+    <script type="text/javascript">
+    window.onload = sumPrev();
+    window.onload = sumFree();
+    window.setInterval("sumPrev()",100);
+    window.setInterval("sumFree()",100);</script>
 </body>
 </html>
