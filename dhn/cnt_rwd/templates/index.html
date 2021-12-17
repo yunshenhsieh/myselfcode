@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>門診盤點</title>
+	<style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		.wrap{
+			width: 100%;
+			max-width: 1200px;
+		}
+		.item{
+			background-color: #ffa;
+			margin:0px 10px 20px;
+		}
+	</style>
+</head>
+<body>
+<div class="wrap">
+	<div class="item">
+        <br>
+		<h1>門診盤點</h1>
+        <form method="get" action="{{ url_for('cnt')}}">
+        <br>
+        <h1>請輸入姓名：</h1><input id="input_user" type="text" style="font-size: 30px; width: 200px" name="userName">
+        <br>
+        <button type="submit" style="font-size: 20px;">送出</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="reset" style="font-size: 20px;">清除</button>
+        </form>
+	</div>
+</div>
+
+</body>
+</html>
