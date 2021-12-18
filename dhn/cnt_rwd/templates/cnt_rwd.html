@@ -36,7 +36,7 @@
         <br>
         <h1>姓名：<em id="user-name" name="userName">{{userName}}</em></h1>
         <br>
-        <h1>料位號：<input id="drug-code" type="text" name="drugCode"></h1>
+        <h1>料位號：<input id="drug-code" type="text" name="drugCode" required="required"></h1>
         <br>
         <h1>100 * <input id="input-100" type="number" name="input100"> = <em id="multi-100-prev">0</em></h1>
         <h1>56 * <input id="input-56" type="number" name="input56"> = <em id="multi-56-prev">0</em></h1>
@@ -161,24 +161,37 @@
 
     <script type="text/javascript">function sumFree(){
         input_free = document.getElementById("input-free").value;
+
+        try {
         inputFree = eval(input_free);
+        } catch(e){
+        inputFree = 0;
+        }
+
         if (inputFree){
             	document.getElementById("input-free-prev").innerHTML= inputFree;
             }else{
             	document.getElementById("input-free-prev").innerHTML= 0;
+            	inputFree = 0;
             }
     }
     </script>
     <script type="text/javascript">function checkData(){
         dataJson = {100: input_100, 56: input_56, 28: input_28, 21: input_21, 14: input_14,
                     10: input_10, 7: input_7, 1: input_1, "sum": input_sum}
+        dataJsonKeys = Object.keys(dataJson);
+        for (var i = 0; i < dataJsonKeys.length; i++){
+            if (dataJson[dataJsonKeys[i]] == 0 && dataJsonKeys[i] != "sum"){
+                delete dataJson[dataJsonKeys[i]]};
+        }
 
         dataJsonFree = {inputFree: [input_free, inputFree]}
 
+        var tSum = input_sum + inputFree;
         var drugCode = document.getElementById("drug-code").value;
         var userName = document.getElementById("user-name").innerHTML;
 
-        totalData = JSON.stringify([userName, drugCode, dataJson, dataJsonFree]);
+        totalData = JSON.stringify([drugCode, tSum, dataJson, dataJsonFree, userName]);
         document.getElementById("return-data").value = totalData;
         }</script>
     <script type="text/javascript">function alertReset(){
