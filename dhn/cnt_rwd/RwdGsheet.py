@@ -2,12 +2,12 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 
 # If modifying these scopes, delete the file token.json.
-SERVICE_ACCOUNT_FILE = '../gsheettest-xieworker-key.json'
+SERVICE_ACCOUNT_FILE = '<API key file name>.json'
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 # The ID and range of a sample spreadsheet.
 # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
-SAMPLE_SPREADSHEET_ID = '1yFwmAMk9OupSuA_G0OjQN4RPJ1Y92ksyKokqHFs8GjA'
+SAMPLE_SPREADSHEET_ID = '<google sheet ID>'
 service = build('sheets', 'v4', credentials=creds)
 sheet = service.spreadsheets()
 
