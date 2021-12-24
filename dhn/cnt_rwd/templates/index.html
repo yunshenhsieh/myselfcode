@@ -25,10 +25,11 @@
 	<div class="item">
         <br>
 		<h1>門診盤點</h1>
+        <!--  這邊的action為「啟動python檔內，cnt方法」。      -->
         <form method="get" action="{{ url_for('cnt')}}">
         <br>
         <h1>請輸入姓名：</h1><input id="input_user" type="text" style="font-size: 30px; width: 200px" name="userName">
-        <br>
+        <br><br>
         <button type="submit" style="font-size: 20px;">送出</button>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <button type="reset" style="font-size: 20px;">清除</button>
