@@ -32,7 +32,7 @@
 <body>
 <div class="wrap">
 	<div class="item">
-    <form method="get" action="{{ url_for('addData')}}">
+    <form id="cnt-form" method="get" action="{{ url_for('addData')}}">
         <br>
         <h1>姓名：<em id="user-name" name="userName">{{userName}}</em></h1>
         <br>
@@ -51,14 +51,16 @@
         <h1>自行輸入：<input id="input-free" type="text" name="inputFree"> = <em id="input-free-prev">0</em></h1>
 
         <p>
+        <!--   下面這行的input為提交時，會傳送資料回去python的input    -->
         <input id="return-data" name="returnData" type="hidden"></input>
-        <button type="submit" onclick="checkData()">送出</button>
-        <button type="reset" onclick="alertReset()">清除</button>
+        <button type="submit" onclick="checkData()" style="font-size: 20px;">送出</button>
+        <button type="button" onclick="alertReset()" style="font-size: 20px;">清除</button>
     </p>
     </form>
     </div>
 </div>
     <script type="text/javascript">
+    /*  此為設定javascript全域變數的地方。 */
     var dataJson;
     var dataJsonFree;
 
@@ -74,11 +76,14 @@
     var input_free;</script>
 
     <script type="text/javascript">function sumPrev(){
+            /* 下面這行為取得指定id內的值 */
             input_100 = document.getElementById("input-100").value;
+            /* 取得的值為字串，進行強制轉行成數字，如果有非數字的輸入，像："5b"f，出來的結果會是NaN */
             input_100 = Number(input_100);
             input100 = 0
             if (input_100){
                 input100 = input_100 * 100
+                /* 讓指定id內的網頁顯示變成input100存的值。 */
             	document.getElementById("multi-100-prev").innerHTML= input100;
             }else{
             	document.getElementById("multi-100-prev").innerHTML= 0;
@@ -156,12 +161,11 @@
 
             input_sum = input100 + input56 + input28 + input21 + input14 + input10 + input7 + input1;
             document.getElementById("cnt-sum-prev").innerHTML = input_sum;
-
         }</script>
 
     <script type="text/javascript">function sumFree(){
         input_free = document.getElementById("input-free").value;
-
+        /* 因為eval給的輸入值為錯誤的算式，是會出exception，所以這邊只能用try catch來處理，不能用if。 */
         try {
         inputFree = eval(input_free);
         } catch(e){
@@ -172,31 +176,48 @@
             	document.getElementById("input-free-prev").innerHTML= inputFree;
             }else{
             	document.getElementById("input-free-prev").innerHTML= 0;
+            	/* 這邊inputFree不給0的話，如果沒有用到自行輸入計算式，就直接傳送資料，這部份的sum會是NaN，
+            	   而NaN加任何數都會是空值，這樣下面設計的方法就會有bug。 */
             	inputFree = 0;
             }
     }
     </script>
+
     <script type="text/javascript">function checkData(){
         dataJson = {100: input_100, 56: input_56, 28: input_28, 21: input_21, 14: input_14,
                     10: input_10, 7: input_7, 1: input_1, "sum": input_sum}
+        /* js取得字典所有key值的方法。 */
         dataJsonKeys = Object.keys(dataJson);
         for (var i = 0; i < dataJsonKeys.length; i++){
+            /* 如果這個key對應的value為0就都刪除，sum的除外，因為sum等下需要相加，若現在就刪掉了，等下就會出現bug。 */
             if (dataJson[dataJsonKeys[i]] == 0 && dataJsonKeys[i] != "sum"){
                 delete dataJson[dataJsonKeys[i]]};
         }
 
         dataJsonFree = {inputFree: [input_free, inputFree]}
 
+        /* 乘數計算的總合跟自行輸入算式的總合相加，算出全部的總合。 */
         var tSum = input_sum + inputFree;
+        /* 取得料位號 */
         var drugCode = document.getElementById("drug-code").value;
         var userName = document.getElementById("user-name").innerHTML;
 
         totalData = JSON.stringify([drugCode, tSum, dataJson, dataJsonFree, userName]);
+        /* 將input id="return-data"的值設為整理好的資料，這樣提交時，就只要提交這個input內的值，就可以了。 */
         document.getElementById("return-data").value = totalData;
         }</script>
+
     <script type="text/javascript">function alertReset(){
+        /* confirm為一個js內寫好的方法，按下確定會回傳True，取消為False。 */
+        if (confirm('確定要清除嗎??')){
+            document.forms["cnt-form"].reset();
+        }else{
+        }
+
         }</script>
     <script type="text/javascript">
+    /* window.onload為網頁全部載入後，執行後面指定的方法。window.setTinerval為每隔多久執行一次指定的方法，
+       藉由這種方式，來達到即時輸入就可以即時知道計算結果的效果。 */
     window.onload = sumPrev();
     window.onload = sumFree();
     window.setInterval("sumPrev()",100);
