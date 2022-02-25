@@ -6,8 +6,8 @@ def moon_test_main(filepath) -> [[str]]:
     with open(filepath,'r',encoding='utf-8')as f:
         tmp = f.read()
     # 配合題題數
-    match_question_num = 16
-    match_question_num = match_question_num - 1
+    match_question_num = input("請輸入配合題題號，若沒有請輸入0：")
+    match_question_num = int(match_question_num.strip()) - 1
 
     soup = BeautifulSoup(tmp, 'html.parser')
     # 題目
@@ -24,11 +24,12 @@ def moon_test_main(filepath) -> [[str]]:
         ans_list[i] = ans_list[i].replace('\n', ' ')
 
     # 排整齊配合題用
-    ans_list[match_question_num] = ans_list[match_question_num].split(', ')
-    ans_list[match_question_num][0] = ans_list[match_question_num][0].replace('：', '：\n')
-    for i in range(len(ans_list[match_question_num])):
-        ans_list[match_question_num][i] = ans_list[match_question_num][i].strip()
-    ans_list[match_question_num] = ',\n'.join(ans_list[match_question_num])
+    if not (match_question_num < 0):
+        ans_list[match_question_num] = ans_list[match_question_num].split(', ')
+        ans_list[match_question_num][0] = ans_list[match_question_num][0].replace('：', '：\n')
+        for i in range(len(ans_list[match_question_num])):
+            ans_list[match_question_num][i] = ans_list[match_question_num][i].strip()
+        ans_list[match_question_num] = ',\n'.join(ans_list[match_question_num])
 
     # 整理成寫入google sheet的格式
     data_finish = []
@@ -65,7 +66,6 @@ def moon_test_answer_gsheet(sheet_name, filepath):
                 'properties': {
                     'sheetId':sheet_name,
                     'title': str(sheet_name),
-                    # set the sheet to be first
                     'index': 0
                 }
             }
@@ -73,10 +73,10 @@ def moon_test_answer_gsheet(sheet_name, filepath):
     }
     # 建立工作表新分頁
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
-    
-    # set backgroundcolor by batchupdate
+
+    # set backgroundcolor
     backgroundcolor_requests = []
-    for i in range(2,45,3):
+    for i in range(2,len(data_finish),3):
         backgroundcolor_requests.append(
             {
             "repeatCell": {
