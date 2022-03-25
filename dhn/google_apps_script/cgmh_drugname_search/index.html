@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style type="text/css">
+		*{
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		.wrap{
+			width: 100%;
+			max-width: 1200px;
+		}
+		.item{
+			background-color: #ffa;
+			margin:0px 10px 20px;
+		}
+	</style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <script>function sendData() {
+        google.script.run.withSuccessHandler(
+          function(data){
+            if (data != "查無資料"){
+              data = data[1] + "<br>" + data[3] + "<br>" + data[4];
+              document.getElementById("search_result").innerHTML = data;
+            }else{
+              document.getElementById("search_result").innerHTML = data;
+            }
+          }
+        ).searchSheet(document.getElementById("input_user").value);
+      };      
+    </script>
+  
+  <script>function clean() {
+        document.getElementById("input_user").value = "";
+      };      
+    </script>
+  </head>
+  <body>
+    <div class="wrap">
+	<div class="item">
+        <br>
+		<h1>品項名查詢</h1>
+    <h1 id="search_result"></h1>
+        <br>
+        <h1>請輸入料位號：</h1><input id="input_user" type="text" style="font-size: 30px; width: 200px" name="userName">
+        <br><br>
+        <button type="submit" style="font-size: 20px;" onclick="sendData()">送出</button>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button type="reset" style="font-size: 20px;" onclick="clean()">清除</button>    
+    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+  <h5>標記</h5>
+	</div>  
+</div>
+  </body>
+</html>
