@@ -17,13 +17,17 @@
 			margin:0px 10px 20px;
 		}
 	</style>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-
+  
   <script>function sendData() {
         google.script.run.withSuccessHandler(
           function(data){
             if (data != "查無資料"){
-              data = data[1] + "<br>" + data[3] + "<br>" + data[4];
+              data = 
+              "藥品編號：" + data[0] + "<br>" + 
+              "料位號：" + data[3] + "<br>" + 
+              "藥品名稱：" + data[1] + "<br>" + 
+              "第一商品名：" + data[2] + "<br>" + 
+              "第二商品名：" + data[4];
               document.getElementById("search_result").innerHTML = data;
             }else{
               document.getElementById("search_result").innerHTML = data;
