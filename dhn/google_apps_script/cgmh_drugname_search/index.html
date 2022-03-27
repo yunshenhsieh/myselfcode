@@ -24,7 +24,7 @@
           function(data){
             if (data.includes("查無資料")){
               document.getElementById("search_result").innerHTML = data;
-              document.getElementById("barcode_svg").innerHTML = "";
+              JsBarcode("#barcode_svg", document.getElementById("input_user").value + "0019999999");
               clean();
             }else{              
               JsBarcode("#barcode_svg", data[3] + "0019999999");
