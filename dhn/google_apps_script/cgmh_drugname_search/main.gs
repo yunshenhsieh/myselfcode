@@ -13,7 +13,7 @@ function searchSheet(drugCode){
     targeRow = SheetName.getSheetValues(targeRow,1,targeRow,SheetName.getLastColumn());
     return targeRow[0];
   }else{
-    return "查無資料";
+    return drugCode + " 查無資料";
   }
   
 }
