@@ -10,27 +10,32 @@
 		}
 		.wrap{
 			width: 100%;
-			max-width: 1200px;
 		}
-		.item{
-			background-color: #ffa;
+		.item{			
 			margin:0px 10px 20px;
+		        width:300px;
+		        height:20px;
+		        margin:0 auto;
 		}
 	</style>
-  
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script>function sendData() {
         google.script.run.withSuccessHandler(
           function(data){
-            if (data != "查無資料"){
+            if (data.includes("查無資料")){
+              document.getElementById("search_result").innerHTML = data;
+              document.getElementById("barcode_svg").innerHTML = "";
+              clean();
+            }else{              
+              JsBarcode("#barcode_svg", data[3] + "0019999999");
               data = 
-              "藥品編號：" + data[0] + "<br>" + 
-              "料位號：" + data[3] + "<br>" + 
-              "藥品名稱：" + data[1] + "<br>" + 
-              "第一商品名：" + data[2] + "<br>" + 
-              "第二商品名：" + data[4];
+              "1、藥品編號：" + data[0] + "<br><br>" + 
+              "2、料位號：" + data[3] + "<br><br>" + 
+              "3、藥品名稱：" + data[1] + "<br><br>" + 
+              "4、第一商品名：" + data[2] + "<br><br>" + 
+              "5、第二商品名：" + data[4];
               document.getElementById("search_result").innerHTML = data;
-            }else{
-              document.getElementById("search_result").innerHTML = data;
+              clean();              
             }
           }
         ).searchSheet(document.getElementById("input_user").value);
@@ -41,22 +46,22 @@
         document.getElementById("input_user").value = "";
       };      
     </script>
+
   </head>
   <body>
     <div class="wrap">
 	<div class="item">
         <br>
-		<h1>品項名查詢</h1>
-    <h1 id="search_result"></h1>
+	<h1 style="font-size: 50px">品項名查詢</h1>
         <br>
         <h1>請輸入料位號：</h1><input id="input_user" type="text" style="font-size: 30px; width: 200px" name="userName">
         <br><br>
         <button type="submit" style="font-size: 20px;" onclick="sendData()">送出</button>
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <button type="reset" style="font-size: 20px;" onclick="clean()">清除</button>    
-    <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
-  <h5>標記</h5>
+        <button type="reset" style="font-size: 20px;" onclick="clean()">清除</button>
+    <svg id="barcode_svg"></svg>
+    <h1 id="search_result"></h1>    
 	</div>  
-</div>
+    </div>
   </body>
 </html>
