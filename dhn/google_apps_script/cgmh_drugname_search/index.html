@@ -13,9 +13,9 @@
 		}
 		.item{			
 			margin:0px 10px 20px;
-		        width:300px;
-		        height:20px;
-		        margin:0 auto;
+      width:300px;
+      height:20px;
+      margin:0 auto;
 		}
 	</style>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -23,8 +23,10 @@
         google.script.run.withSuccessHandler(
           function(data){
             if (data.includes("查無資料")){
+              data = data.toUpperCase();
               document.getElementById("search_result").innerHTML = data;
-              JsBarcode("#barcode_svg", document.getElementById("input_user").value + "0019999999");
+              data = data.slice(0, data.length - 5);
+              JsBarcode("#barcode_svg", data + "0019999999");
               clean();
             }else{              
               JsBarcode("#barcode_svg", data[3] + "0019999999");
@@ -52,16 +54,16 @@
     <div class="wrap">
 	<div class="item">
         <br>
-	<h1 style="font-size: 50px">品項名查詢</h1>
+		<h1 style="font-size: 50px">品項名查詢</h1>
         <br>
-        <h1>請輸入料位號：</h1><input id="input_user" type="text" style="font-size: 30px; width: 200px" name="userName">
-        <br><br>
-        <button type="submit" style="font-size: 20px;" onclick="sendData()">送出</button>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <button type="reset" style="font-size: 20px;" onclick="clean()">清除</button>
+        <h1>請輸入料位號：</h1><input id="input_user" type="text" style="font-size: 50px; width: 200px" name="userName">
+        <br><br><br>
+        <button type="submit" style="font-size: 50px;" onclick="sendData()">送出</button>
+        <br><br><br>
+        <button type="reset" style="font-size: 50px;" onclick="clean()">清除</button>
     <svg id="barcode_svg"></svg>
     <h1 id="search_result"></h1>    
 	</div>  
-    </div>
+</div>
   </body>
 </html>
