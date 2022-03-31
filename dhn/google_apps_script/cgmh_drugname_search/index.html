@@ -25,7 +25,9 @@
             if (data.includes("查無資料")){
               data = data.toUpperCase();
               document.getElementById("search_result").innerHTML = data;
-              document.getElementById("barcode_svg").innerHTML = "";              
+              document.getElementById("barcode_svg").innerHTML = "";
+
+              this.cleanResult();              
               this.clean();
             }else{              
               JsBarcode("#barcode_svg", data[3] + "0019999999", {width:4, fontSize:30});
@@ -41,15 +43,11 @@
               document.getElementById("first_brand_name").innerHTML = data[2];
               document.getElementById("secend_brand_name").innerHTML = data[4];
               
+              this.cleanSearchResult();
               this.clean();              
             }
           }
         ).searchSheet(document.getElementById("input_user").value.trim());
-      };      
-    </script>
-  
-  <script>function clean() {
-        document.getElementById("input_user").value = "";
       };      
     </script>
   
@@ -58,13 +56,42 @@
       if (strBarcode.length < 1){
         document.getElementById("search_result").innerHTML = "請輸入資訊。";
         document.getElementById("barcode_svg").innerHTML = "";
+
+        this.cleanResult();
         this.clean();
       }else{
         JsBarcode("#barcode_svg", strBarcode.toUpperCase() + "0019999999", {width:4, fontSize:30});
-        document.getElementById("search_result").innerHTML = "";
+
+        this.cleanSearchResult();
+        this.cleanResult();
         this.clean();        
       }        
   };
+    </script>
+
+    <script>function clean() {
+        document.getElementById("input_user").value = "";
+      };      
+    </script>
+
+    <script>function cleanResult() {
+        document.getElementById("product_code_title").innerHTML = "";
+        document.getElementById("drug_code_title").innerHTML = "";
+        document.getElementById("drug_name_title").innerHTML = "";
+        document.getElementById("first_brand_name_title").innerHTML = "";
+        document.getElementById("secend_brand_name_title").innerHTML = "";
+
+        document.getElementById("product_code").innerHTML = "";
+        document.getElementById("drug_code").innerHTML = "";
+        document.getElementById("drug_name").innerHTML = "";
+        document.getElementById("first_brand_name").innerHTML = "";
+        document.getElementById("secend_brand_name").innerHTML = "";
+    };
+    </script>
+
+    <script>function cleanSearchResult() {
+        document.getElementById("search_result").innerHTML = "";
+      };      
     </script>
 
   </head>
@@ -76,7 +103,7 @@
       <br>
         <h1>請輸入料位號：</h1><input id="input_user" type="text" style="font-size: 50px; width: 200px" name="userName">
       <br><br><br>
-        <button type="submit" style="font-size: 50px;" onclick="sendData()">送出</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" style="font-size: 50px;" onclick="barcodeGenerate()">產生Barcode</button>       
+        <button type="submit" style="font-size: 50px;" onclick="sendData()">查詢</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" style="font-size: 50px;" onclick="barcodeGenerate()">產生Barcode</button>       
       <br><br><br>
         <button type="reset" style="font-size: 50px;" onclick="clean()">清除</button>
       <br>
