@@ -30,8 +30,16 @@
               this.cleanResult();              
               this.clean();
             }else{              
-              JsBarcode("#barcode_svg", data[3] + "0019999999", {width:4, fontSize:30});
-              document.getElementById("product_code_title").innerHTML = "1、藥品編號：";
+              try{
+                JsBarcode("#barcode_svg", data[3] + "0019999999", {width:4, fontSize:30});}
+              catch (e){
+                console.log(e)
+                document.getElementById("barcode_svg").innerHTML = "";
+                this.clean();
+                this.cleanResult();
+                this.cleanSearchResult();
+              }
+              document.getElementById("product_code_title").innerHTML = "1、藥材編號：";
               document.getElementById("drug_code_title").innerHTML = "2、料位號：";
               document.getElementById("drug_name_title").innerHTML = "3、藥品名稱：";
               document.getElementById("first_brand_name_title").innerHTML = "4、第一商品名：";
@@ -117,7 +125,7 @@
     <h1 id="first_brand_name_title"></h1><h1 id="first_brand_name" style="font-size: 4em; color: #006400;"></h1><br><br>
     <h1 id="secend_brand_name_title"></h1><h1 id="secend_brand_name" style="font-size: 4em; color: #006400;"></h1><br><br>
     <br><br><br>
-    <h4>問題聯繫：vincent 燊<h4>
+    <h4>問題聯繫：Vincent 燊<h4>
 	</div>  
 </div>
   </body>
