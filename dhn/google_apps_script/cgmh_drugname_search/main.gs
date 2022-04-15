@@ -7,7 +7,7 @@ function searchSheet(drugCode){
   var name = '<sheet page name>'
   var SpreadSheet = SpreadsheetApp.openByUrl(url);
   var SheetName = SpreadSheet.getSheetByName(name);
-  var targeRow = SheetName.getRange("D:D").createTextFinder(drugCode).findAll().map((r) => r.getA1Notation());
+  var targeRow = SheetName.getRange("D:D").createTextFinder(drugCode).matchEntireCell(true).findAll().map((r) => r.getA1Notation());
   if (targeRow.length >= 1){
     targeRow = parseInt(targeRow[0].slice(1, targeRow[0].length), 10);
     targeRow = SheetName.getSheetValues(targeRow,1,targeRow,SheetName.getLastColumn());
