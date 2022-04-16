@@ -1,4 +1,4 @@
-import requests, time, random
+import requests, time, random, datetime
 from bs4 import BeautifulSoup
 from collections import deque
 
@@ -14,9 +14,8 @@ def getStockGroupCode() -> dict:
     soup = BeautifulSoup(respones.text, "html.parser")
     headTrList = soup.select("thead")[0].select("tr")
     title = headTrList[0].select("div")[0].text
-    dataTime, title = title.split(" ")
-    dataTime = str(int(dataTime[0:3]) + 1911) + dataTime[4:6] + dataTime[7:9]
-    title = dataTime + title
+    dataTimeNow, title = title.split(" ")
+    dataTimeNow = str(int(dataTimeNow[0:3]) + 1911) + dataTimeNow[4:6] + dataTimeNow[7:9]
     headColumnList = headTrList[1].select("td")
     headColAndStockGroupDict[title] = []
     for col in headColumnList:
@@ -31,7 +30,7 @@ def getStockGroupCode() -> dict:
         tmp = code["value"]
         if len(tmp) == 2 and tmp.isdigit():
             headColAndStockGroupDict[tmp + "|" + code.text] = None
-    return dataTime, headColAndStockGroupDict
+    return dataTimeNow, headColAndStockGroupDict
 
 # Three Institutional Investors Buy/Sell
 def getTIIBuySellData(dataTime, headColAndStockGroupDict) -> dict:
@@ -48,7 +47,7 @@ def getTIIBuySellData(dataTime, headColAndStockGroupDict) -> dict:
                     respones = requests.get(url=twseUrl + BuySellUrl, headers=headers)
                     time.sleep(random.randint(2, 5))
                     soup = BeautifulSoup(respones.text, "html.parser")
-                    print(selectType)
+                    print(dataTime, selectType)
                     stockDataList = soup.select("tbody")[0].select("tr")
                     result = []
                     for stockData in stockDataList:
@@ -65,9 +64,18 @@ def getTIIBuySellData(dataTime, headColAndStockGroupDict) -> dict:
         print("===========", round + 1, "==============")
     return headColAndStockGroupDict
 
+
+def getMultiDayData(frequency, dataTimeNowStr, headColAndStockGroupDict):
+    result = {}
+    for day in range(frequency):
+        nowTime = datetime.datetime.strptime(dataTimeNowStr, "%Y%m%d")
+        getDataDayTime = nowTime + datetime.timedelta(days = -day)
+        getDataDayTime = getDataDayTime.strftime("%Y%m%d")
+        result[getDataDayTime] = getTIIBuySellData(getDataDayTime, headColAndStockGroupDict)
+    return result
+
 if __name__ == "__main__":
-    datatime, groupCode = getStockGroupCode()
-    print(groupCode)
-    tmp = getTIIBuySellData(datatime, groupCode)
-    with open("demo.txt", 'w', encoding="utf-8")as w:
+    dataTime, groupCode = getStockGroupCode()
+    tmp = getMultiDayData(2, dataTime, groupCode)
+    with open("result.txt", 'w', encoding="utf-8")as w:
         w.write(str(tmp))
