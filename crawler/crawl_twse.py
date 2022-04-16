@@ -65,7 +65,7 @@ def getTIIBuySellData(dataTime, headColAndStockGroupDict) -> dict:
     return headColAndStockGroupDict
 
 
-def getMultiDayData(frequency, dataTimeNowStr, headColAndStockGroupDict):
+def getMultiDayData(frequency, dataTimeNowStr, headColAndStockGroupDict) -> dict:
     result = {}
     for day in range(frequency):
         nowTime = datetime.datetime.strptime(dataTimeNowStr, "%Y%m%d")
