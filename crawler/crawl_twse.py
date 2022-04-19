@@ -1,4 +1,4 @@
-import requests, time, random, datetime
+import requests, time, random, datetime, json, openpyxl
 from bs4 import BeautifulSoup
 from collections import deque
 
@@ -74,8 +74,27 @@ def getMultiDayData(frequency, dataTimeNowStr, headColAndStockGroupDict) -> dict
         result[getDataDayTime] = getTIIBuySellData(getDataDayTime, headColAndStockGroupDict)
     return result
 
+def outputToExcel(jsonData):
+    wb = openpyxl.Workbook()
+    for item in jsonData.items():
+        day = item[0]
+        wDaySheet = wb.create_sheet(day)
+        title, Headers = ["三大法人買賣超日報"], item[1]["三大法人買賣超日報"]
+        wDaySheet.append(title)
+        wDaySheet.append(Headers)
+        for data in list(item[1].items())[1:]:
+            print(data[0])
+            wDaySheet.append([data[0].split("|")[1]])
+            if data[1]:
+                [wDaySheet.append(stockData) for stockData in data[1]]
+            else:
+                wDaySheet.append(["無資料。"])
+    fileName = list(jsonData.keys())
+    wb.remove(wb["Sheet"])
+    wb.save("{}_{}.xlsx".format(fileName[0], fileName[-1]))
+    pass
+
 if __name__ == "__main__":
     dataTime, groupCode = getStockGroupCode()
-    tmp = getMultiDayData(2, dataTime, groupCode)
-    with open("result.txt", 'w', encoding="utf-8")as w:
-        w.write(str(tmp))
+    jsonData = getMultiDayData(2, dataTime, groupCode)
+    outputToExcel(jsonData)
