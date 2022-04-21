@@ -58,6 +58,46 @@
         ).searchSheet(document.getElementById("input_user").value.trim());
       };      
     </script>
+
+  <script>function sendProductCode() {
+        google.script.run.withSuccessHandler(
+          function(data){
+            if (data.includes("查無資料")){
+              data = data.toUpperCase();
+              document.getElementById("search_result").innerHTML = data;
+              document.getElementById("barcode_svg").innerHTML = "";
+
+              this.cleanResult();              
+              this.clean();
+            }else{              
+              try{
+                JsBarcode("#barcode_svg", data[3] + "0019999999", {width:4, fontSize:30});}
+              catch (e){
+                console.log(e)
+                document.getElementById("barcode_svg").innerHTML = "";
+                this.clean();
+                this.cleanResult();
+                this.cleanSearchResult();
+              }
+              document.getElementById("product_code_title").innerHTML = "1、藥材編號：";
+              document.getElementById("drug_code_title").innerHTML = "2、料位號：";
+              document.getElementById("drug_name_title").innerHTML = "3、藥品名稱：";
+              document.getElementById("first_brand_name_title").innerHTML = "4、第一商品名：";
+              document.getElementById("secend_brand_name_title").innerHTML = "5、第二商品名：";
+
+              document.getElementById("product_code").innerHTML = data[0];
+              document.getElementById("drug_code").innerHTML = data[3];
+              document.getElementById("drug_name").innerHTML = data[1];
+              document.getElementById("first_brand_name").innerHTML = data[2];
+              document.getElementById("secend_brand_name").innerHTML = data[4];
+              
+              this.cleanSearchResult();
+              this.clean();              
+            }
+          }
+        ).searchProductCode(document.getElementById("input_user").value.trim());
+      };      
+    </script>
   
   <script>function barcodeGenerate(){
         strBarcode = document.getElementById("input_user").value.trim();
@@ -109,9 +149,11 @@
         <br>
 		<h1 style="font-size: 50px">品項名查詢</h1>
       <br>
-        <h1>請輸入料位號：</h1><input id="input_user" type="text" style="font-size: 50px; width: 200px" name="userName">
+        <input id="input_user" type="text" style="font-size: 50px; width: 500px" name="userName">
       <br><br><br>
-        <button type="submit" style="font-size: 50px;" onclick="sendData()">查詢</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" style="font-size: 50px;" onclick="barcodeGenerate()">產生Barcode</button>       
+        <button type="submit" style="font-size: 50px;" onclick="sendData()">用料位號查詢</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<button type="submit" style="font-size: 50px;" onclick="barcodeGenerate()">產生Barcode</button>
+      <br><br><br>
+      <button type="submit" style="font-size: 50px;" onclick="sendProductCode()">用材編查詢</button>       
       <br><br><br>
         <button type="reset" style="font-size: 50px;" onclick="clean()">清除</button>
       <br>
