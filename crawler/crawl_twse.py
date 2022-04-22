@@ -83,7 +83,6 @@ def outputToExcel(jsonData):
         wDaySheet.append(title)
         wDaySheet.append(Headers)
         for data in list(item[1].items())[1:]:
-            print(data[0])
             wDaySheet.append([data[0].split("|")[1]])
             if data[1]:
                 [wDaySheet.append(stockData) for stockData in data[1]]
