@@ -71,7 +71,8 @@ def getMultiDayData(frequency, dataTimeNowStr, headColAndStockGroupDict) -> dict
         nowTime = datetime.datetime.strptime(dataTimeNowStr, "%Y%m%d")
         getDataDayTime = nowTime + datetime.timedelta(days = -day)
         getDataDayTime = getDataDayTime.strftime("%Y%m%d")
-        result[getDataDayTime] = getTIIBuySellData(getDataDayTime, headColAndStockGroupDict)
+        data = getTIIBuySellData(getDataDayTime, headColAndStockGroupDict)
+        result[getDataDayTime] = dict(data)
     return result
 
 def outputToExcel(jsonData):
