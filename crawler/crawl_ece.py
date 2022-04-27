@@ -14,11 +14,12 @@ def main(driverExe):
     WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "divResult")))
     totalPage = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#lblRowCnt")[0].text.replace(",",""))
     pageNum = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#PageControl1_lblCurrentPage")[0].text.replace(",",""))
-    recordPageNum = pageNum
+    recordPageNum = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#PageControl1_lblCurrentPage")[0].text.replace(",",""))
     failPageCnt = 0
     while totalPage > pageNum:
+        time.sleep(10)
+        pageNum = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#PageControl1_lblCurrentPage")[0].text.replace(",", ""))
         if failPageCnt == 0:
-            time.sleep(10)
             js="var action=document.documentElement.scrollTop=0"
             driverExe.execute_script(js)
             print("正在第 {} 頁。".format(pageNum))
@@ -136,7 +137,7 @@ def nextPage(driverExe):
     driverExe.find_element(By.ID, "PageControl1_lbNextPage").click()
     pass
 
-def switchToRecordPageNum(recordPageNum) -> object:
+def switchToRecordPageNum(pageNum) -> object:
     headers = {
         "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
         "referer": "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
@@ -156,7 +157,7 @@ def switchToRecordPageNum(recordPageNum) -> object:
     time.sleep(5)
     WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "PageControl1_txtPages")))
     driverExe.find_element(By.ID, "PageControl1_txtPages").clear()
-    driverExe.find_element(By.ID, "PageControl1_txtPages").send_keys(recordPageNum)
+    driverExe.find_element(By.ID, "PageControl1_txtPages").send_keys(pageNum)
     driverExe.find_element(By.ID, "PageControl1_lbPageChg").click()
 
     return driverExe
@@ -197,35 +198,27 @@ if __name__ == "__main__":
     totalPage = 0
 
     ocr = ddddocr.DdddOcr()
-    headers = {
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
-        "referer": "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
-    }
-    url = "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
-    seleniumOptions = selenium.webdriver.ChromeOptions()
-    seleniumOptions.add_argument("user-agent={}".format(headers["user-agent"]))
-    seleniumOptions.add_argument("referer={}".format(headers["referer"]))
-    seleniumOptions.add_experimental_option('excludeSwitches', ['enable-automation'])
-    driverExe = selenium.webdriver.Chrome(chrome_options=seleniumOptions,
-                                          executable_path="../../driver/chromedriver.exe")
-    driverExe.get(url)
-    time.sleep(4)
-    WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "btnSearch")))
-    driverExe.find_element(By.ID, "btnSearch").click()
-    time.sleep(5)
-    totalPage = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#lblRowCnt")[0].text.replace(",", ""))
-    print(totalPage)
-    driverExe.quit()
+    # headers = {
+    #     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
+    #     "referer": "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
+    # }
+    # url = "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
+    # seleniumOptions = selenium.webdriver.ChromeOptions()
+    # seleniumOptions.add_argument("user-agent={}".format(headers["user-agent"]))
+    # seleniumOptions.add_argument("referer={}".format(headers["referer"]))
+    # seleniumOptions.add_experimental_option('excludeSwitches', ['enable-automation'])
+    # driverExe = selenium.webdriver.Chrome(chrome_options=seleniumOptions,
+    #                                       executable_path="../../driver/chromedriver.exe")
+    # driverExe.get(url)
+    # time.sleep(4)
+    # WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "btnSearch")))
+    # driverExe.find_element(By.ID, "btnSearch").click()
+    # time.sleep(5)
+    # totalPage = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#lblRowCnt")[0].text.replace(",", ""))
+    # print(totalPage)
+    # driverExe.quit()
 
-    while recordPageNum < totalPage:
-        if timeoutPoint:
-            try:
-                stop_thread(thread1)
-            except:
-                print("error")
-            thread1 = threading.Thread(target=main, args=(switchToRecordPageNum(recordPageNum),))
-            thread1.start()
-            timeoutPoint = False
-        else:
-            timeoutPoint = True
-        time.sleep(300)
+    while True:
+        tmp = main(switchToRecordPageNum(13))
+        if tmp.totalPage < tmp.pageNum:
+            break
