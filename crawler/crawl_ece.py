@@ -7,14 +7,14 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 import threading, ctypes, inspect
 
-def main(driverExe):
+def main(driverExe, recordItemNum):
     global recordPageNum, timeoutPoint, totalPage
     print("main work")
     time.sleep(10)
     WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "divResult")))
     totalPage = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#lblRowCnt")[0].text.replace(",",""))
     pageNum = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#PageControl1_lblCurrentPage")[0].text.replace(",",""))
-    recordPageNum = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#PageControl1_lblCurrentPage")[0].text.replace(",",""))
+    itemCnt = recordItemNum
     failPageCnt = 0
     while totalPage > pageNum:
         time.sleep(10)
@@ -25,7 +25,6 @@ def main(driverExe):
             print("正在第 {} 頁。".format(pageNum))
             soup = BeautifulSoup(driverExe.page_source, "html.parser")
             itemNum = str(soup.select("table#GridView1")[0]).count("GridView1_btnMore")
-            itemCnt = 0
             failItemCnt = 0
             while itemNum > itemCnt:
                 try:
@@ -47,16 +46,13 @@ def main(driverExe):
                         failItemCnt = 0
                         itemCnt += 1
                         driverSwitchLastWindow(driverExe)
-
-                        if "timeout" in e:
-                            global globalException
-                            globalException = e
                         pass
                 timeoutPoint = False
             try:
                 driverSwitchLastWindow(driverExe)
                 nextPage(driverExe)
                 failPageCnt = 0
+                itemCnt = 0
                 timeoutPoint = False
             except Exception as e:
                 failPageCnt += 1
@@ -69,6 +65,7 @@ def main(driverExe):
             time.sleep(10)
             driverSwitchLastWindow(driverExe)
             nextPage(driverExe)
+            itemCnt = 0
             timeoutPoint = False
     pass
 
@@ -191,7 +188,7 @@ def stop_thread(thread):
 
 if __name__ == "__main__":
     recordPageNum = 1
-    recordItemNum = 0
+    recordItemNum = 5 # 0-9
     timeoutNum = 0
     globalException = ""
     timeoutPoint = True
@@ -218,7 +215,4 @@ if __name__ == "__main__":
     # print(totalPage)
     # driverExe.quit()
 
-    while True:
-        tmp = main(switchToRecordPageNum(13))
-        if tmp.totalPage < tmp.pageNum:
-            break
+    main(switchToRecordPageNum(59), recordItemNum)
