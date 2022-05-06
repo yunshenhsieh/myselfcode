@@ -25,13 +25,56 @@ def buildAgeJson():
     tmp_dict["course"] = buildSemesterJson()
     return dict(tmp_dict)
 
-def extractPeriod(soup: BeautifulSoup, ageN, resultJson):
+def extractPeriodOne(soup: BeautifulSoup, ageN, resultJson):
     tuitionPeriod = soup.select("span#GridView{}_lblPT{}1_0".format(ageN, ageN))[0].text
     miscellaneousPeriod = soup.select("span#GridView{}_lblPT{}2_1".format(ageN, ageN))[0].text
     materialPeriod = soup.select("span#GridView{}_lblPT{}2_2".format(ageN, ageN))[0].text
     activityPeriod = soup.select("span#GridView{}_lblPT{}2_3".format(ageN, ageN))[0].text
     lunchPeriod = soup.select("span#GridView{}_lblPT{}2_4".format(ageN, ageN))[0].text
     snackPeriod = soup.select("span#GridView{}_lblPT{}2_5".format(ageN, ageN))[0].text
+    periodTuple = (tuitionPeriod, miscellaneousPeriod, materialPeriod, activityPeriod, lunchPeriod, snackPeriod)
+
+    resultJson["course"]["first_semester"]["class"]["half_day"]["tuition"]["period"] = periodTuple[0]
+    resultJson["course"]["first_semester"]["class"]["half_day"]["miscellaneous"]["period"] = periodTuple[1]
+    resultJson["course"]["first_semester"]["class"]["half_day"]["material"]["period"] = periodTuple[2]
+    resultJson["course"]["first_semester"]["class"]["half_day"]["activity"]["period"] = periodTuple[3]
+    resultJson["course"]["first_semester"]["class"]["half_day"]["lunch"]["period"] = periodTuple[4]
+    resultJson["course"]["first_semester"]["class"]["half_day"]["snack"]["period"] = periodTuple[5]
+    resultJson["course"]["first_semester"]["class"]["half_day"]["all_in_cost"]["period"] = "學期"
+
+    resultJson["course"]["first_semester"]["class"]["full_day"]["tuition"]["period"] = periodTuple[0]
+    resultJson["course"]["first_semester"]["class"]["full_day"]["miscellaneous"]["period"] = periodTuple[1]
+    resultJson["course"]["first_semester"]["class"]["full_day"]["material"]["period"] = periodTuple[2]
+    resultJson["course"]["first_semester"]["class"]["full_day"]["activity"]["period"] = periodTuple[3]
+    resultJson["course"]["first_semester"]["class"]["full_day"]["lunch"]["period"] = periodTuple[4]
+    resultJson["course"]["first_semester"]["class"]["full_day"]["snack"]["period"] = periodTuple[5]
+    resultJson["course"]["first_semester"]["class"]["full_day"]["all_in_cost"]["period"] = "學期"
+
+    resultJson["course"]["second_semester"]["class"]["half_day"]["tuition"]["period"] = periodTuple[0]
+    resultJson["course"]["second_semester"]["class"]["half_day"]["miscellaneous"]["period"] = periodTuple[1]
+    resultJson["course"]["second_semester"]["class"]["half_day"]["material"]["period"] = periodTuple[2]
+    resultJson["course"]["second_semester"]["class"]["half_day"]["activity"]["period"] = periodTuple[3]
+    resultJson["course"]["second_semester"]["class"]["half_day"]["lunch"]["period"] = periodTuple[4]
+    resultJson["course"]["second_semester"]["class"]["half_day"]["snack"]["period"] = periodTuple[5]
+    resultJson["course"]["second_semester"]["class"]["half_day"]["all_in_cost"]["period"] = "學期"
+
+    resultJson["course"]["second_semester"]["class"]["full_day"]["tuition"]["period"] = periodTuple[0]
+    resultJson["course"]["second_semester"]["class"]["full_day"]["miscellaneous"]["period"] = periodTuple[1]
+    resultJson["course"]["second_semester"]["class"]["full_day"]["material"]["period"] = periodTuple[2]
+    resultJson["course"]["second_semester"]["class"]["full_day"]["activity"]["period"] = periodTuple[3]
+    resultJson["course"]["second_semester"]["class"]["full_day"]["lunch"]["period"] = periodTuple[4]
+    resultJson["course"]["second_semester"]["class"]["full_day"]["snack"]["period"] = periodTuple[5]
+    resultJson["course"]["second_semester"]["class"]["full_day"]["all_in_cost"]["period"] = "學期"
+
+    pass
+
+def extractPeriodTwo(soup: BeautifulSoup, ageN, resultJson):
+    tuitionPeriod = soup.select("span#GridView{}_lblPT{}1_0".format(ageN, ageN))[0].text
+    miscellaneousPeriod = soup.select("span#GridView{}_lblPT{}1_1".format(ageN, ageN))[0].text
+    materialPeriod = soup.select("span#GridView{}_lblPT{}1_2".format(ageN, ageN))[0].text
+    activityPeriod = soup.select("span#GridView{}_lblPT{}1_3".format(ageN, ageN))[0].text
+    lunchPeriod = soup.select("span#GridView{}_lblPT{}1_4".format(ageN, ageN))[0].text
+    snackPeriod = soup.select("span#GridView{}_lblPT{}1_5".format(ageN, ageN))[0].text
     periodTuple = (tuitionPeriod, miscellaneousPeriod, materialPeriod, activityPeriod, lunchPeriod, snackPeriod)
 
     resultJson["course"]["first_semester"]["class"]["half_day"]["tuition"]["period"] = periodTuple[0]
@@ -75,25 +118,30 @@ def extractDuration(soup: BeautifulSoup, ageN, i, resultJson):
     resultJson["course"]["second_semester"]["duration"] = float(secendMonth)
     pass
 
+def checkItemNoData(DayCostDict: dict, resultJson: dict, semester: str, courseDuration: str):
+    for k, v in DayCostDict.items():
+        if v:
+            v = int(v[0].text.replace(",", ""))
+            resultJson["course"][semester]["class"][courseDuration][k]["cost"] = v
+        else:
+            resultJson["course"][semester]["class"][courseDuration][k]["cost"] = None
+    pass
+
 def extractItemCost(soup: BeautifulSoup, ageN, i, resultJson):
     tmp = [0, "first_semester", "second_semester"]
-    halfTuition = soup.select("span#GridView{}_lblHUnit{}{}_0".format(ageN, ageN, i))[0].text
-    halfMiscellaneous = soup.select("span#GridView{}_lblHUnit{}{}_1".format(ageN, ageN, i))[0].text
-    halfMaterial = soup.select("span#GridView{}_lblHUnit{}{}_2".format(ageN, ageN, i))[0].text
-    halfActivity = soup.select("span#GridView{}_lblHUnit{}{}_3".format(ageN, ageN, i))[0].text
-    halfLunch = soup.select("span#GridView{}_lblHUnit{}{}_4".format(ageN, ageN, i))[0].text
-    halfSnack = soup.select("span#GridView{}_lblHUnit{}{}_5".format(ageN, ageN, i))[0].text
-    halfAllCost = soup.select("span#GridView{}_lblHalf{}{}_6".format(ageN, ageN, i))[0].text
-    halfDayCostTuple = (halfTuition, halfMiscellaneous, halfMaterial, halfActivity, halfLunch, halfSnack, halfAllCost)
 
-    resultJson["course"][tmp[i]]["class"]["half_day"]["tuition"]["cost"] = int(halfDayCostTuple[0].replace(",", ""))
-    resultJson["course"][tmp[i]]["class"]["half_day"]["miscellaneous"]["cost"] = int(halfDayCostTuple[1].replace(",", ""))
-    resultJson["course"][tmp[i]]["class"]["half_day"]["material"]["cost"] = int(halfDayCostTuple[2].replace(",", ""))
-    resultJson["course"][tmp[i]]["class"]["half_day"]["activity"]["cost"] = int(halfDayCostTuple[3].replace(",", ""))
-    resultJson["course"][tmp[i]]["class"]["half_day"]["lunch"]["cost"] = int(halfDayCostTuple[4].replace(",", ""))
-    resultJson["course"][tmp[i]]["class"]["half_day"]["snack"]["cost"] = int(halfDayCostTuple[5].replace(",", ""))
-    resultJson["course"][tmp[i]]["class"]["half_day"]["all_in_cost"]["cost"] = int(halfDayCostTuple[6].replace(",", ""))
-    
+    halfTuition = soup.select("span#GridView{}_lblHUnit{}{}_0".format(ageN, ageN, i))
+    halfMiscellaneous = soup.select("span#GridView{}_lblHUnit{}{}_1".format(ageN, ageN, i))
+    halfMaterial = soup.select("span#GridView{}_lblHUnit{}{}_2".format(ageN, ageN, i))
+    halfActivity = soup.select("span#GridView{}_lblHUnit{}{}_3".format(ageN, ageN, i))
+    halfLunch = soup.select("span#GridView{}_lblHUnit{}{}_4".format(ageN, ageN, i))
+    halfSnack = soup.select("span#GridView{}_lblHUnit{}{}_5".format(ageN, ageN, i))
+    halfAllCost = soup.select("span#GridView{}_lblHalf{}{}_6".format(ageN, ageN, i))
+    halfDayCostDict = {"tuition": halfTuition, "miscellaneous": halfMiscellaneous,
+                       "material": halfMaterial, "activity": halfActivity, "lunch": halfLunch,
+                       "snack": halfSnack, "all_in_cost": halfAllCost}
+    checkItemNoData(halfDayCostDict, resultJson, tmp[i], "half_day")
+
 
     fullTuition = soup.select("span#GridView{}_lblFUnit{}{}_0".format(ageN, ageN, i))[0].text
     fullMiscellaneous = soup.select("span#GridView{}_lblFUnit{}{}_1".format(ageN, ageN, i))[0].text
@@ -138,16 +186,26 @@ def eceParse(soup: BeautifulSoup):
     name = soup.select("span#lblSchName102")[0].text
     resultJson["name"] = name
     resultJson["data"] = [buildAgeJson() for i in range(ageNum)]
-
-    for ageN in range(1,ageNum + 1):
-        tmpJson = resultJson["data"][ageN - 1]
-        age = soup.select("span#lblAge{}".format(ageN))[0].text
-        if age:
-            extractPeriod(soup, ageN, tmpJson)
-            tmpJson["age"] = int(age)
-            for i in range(1,3):
-                extractDuration(soup, ageN, i, tmpJson)
-                extractItemCost(soup, ageN, i, tmpJson)
+    if "lblPT12" in str(soup):
+        for ageN in range(1,ageNum + 1):
+            tmpJson = resultJson["data"][ageN - 1]
+            age = soup.select("span#lblAge{}".format(ageN))[0].text
+            if age:
+                extractPeriodOne(soup, ageN, tmpJson)
+                tmpJson["age"] = int(age)
+                for i in range(1,3):
+                    extractDuration(soup, ageN, i, tmpJson)
+                    extractItemCost(soup, ageN, i, tmpJson)
+    else:
+        for ageN in range(1,ageNum + 1):
+            tmpJson = resultJson["data"][ageN - 1]
+            age = soup.select("span#lblAge{}".format(ageN))[0].text
+            if age:
+                extractPeriodTwo(soup, ageN, tmpJson)
+                tmpJson["age"] = int(age)
+                for i in range(1,3):
+                    extractDuration(soup, ageN, i, tmpJson)
+                    extractItemCost(soup, ageN, i, tmpJson)
 
     return resultJson
 
