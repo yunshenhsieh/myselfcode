@@ -31,25 +31,28 @@ def checkPeriod(soup: BeautifulSoup, ageN) -> tuple:
     tmp = soup.select("table#GridView{}".format(ageN))[0]
     for i in range(1, 7):
         checkVoidValue = tmp.select("tr")[i].select("span")
-        if len(checkVoidValue) >= 2:
-            if i == 3:
+        if i == 3:
+            if len(checkVoidValue) >= 3:
                 duration = checkVoidValue[2].text
                 if duration.replace(",", "").isdigit():
                     resultPeriod.append(None)
                 else:
                     resultPeriod.append(periodUnitDict[duration])
             else:
+                resultPeriod.append(None)
+        else:
+            if len(checkVoidValue) >= 2:
                 duration = checkVoidValue[1].text
                 if duration.replace(",", "").isdigit():
                     resultPeriod.append(None)
                 else:
                     resultPeriod.append(periodUnitDict[duration])
-        else:
-            resultPeriod.append(None)
+            else:
+                resultPeriod.append(None)
+
     return tuple(resultPeriod)
 
 def extractPeriod(soup: BeautifulSoup, ageN, resultJson):
-
     periodTuple = checkPeriod(soup, ageN)
 
     resultJson["course"]["first_semester"]["class"]["half_day"]["tuition"]["period"] = periodTuple[0]
@@ -132,7 +135,6 @@ def extractItemCost(soup: BeautifulSoup, ageN, i, resultJson):
     pass
 
 def eceParseSimple(soup: BeautifulSoup) -> dict:
-    # 9為簡版
     resultJson = dict()
     ageNum = str(soup).count("lblAge")
     name = soup.select("span#lblSchName102")[0].text
@@ -150,7 +152,7 @@ def eceParseSimple(soup: BeautifulSoup) -> dict:
             tmpJson["course"]["second_semester"]["class"]["full_day"]["all_in_cost"]["period"] = "學期"
             tmpJson["course"]["second_semester"]["class"]["full_day"]["all_in_cost"]["cost"] = int(soup.select("span#lblFull{}2_2".format(ageN))[0].text.replace(",", ""))
         else:
-            del resultJson["data"][ageN - 1]
+            del resultJson["data"][-1]
     return resultJson
 
 def eceParse(soup: BeautifulSoup):
@@ -161,37 +163,41 @@ def eceParse(soup: BeautifulSoup):
     resultJson["data"] = [buildAgeJson() for i in range(ageNum)]
 
     for ageN in range(1,ageNum + 1):
-        tmpJson = resultJson["data"][ageN - 1]
         age = soup.select("span#lblAge{}".format(ageN))[0].text
         if age:
+            tmpJson = resultJson["data"][ageN - 1]
             extractPeriod(soup, ageN, tmpJson)
             tmpJson["age"] = int(age)
             for i in range(1,3):
                 extractDuration(soup, ageN, i, tmpJson)
                 extractItemCost(soup, ageN, i, tmpJson)
         else:
-            del resultJson["data"][ageN - 1]
+            del resultJson["data"][-1]
 
     return resultJson
 
 if __name__ == "__main__":
-    with open("./result/outputtest.txt", "r", encoding="utf-8")as f:
+    with open("./result/ece_1_32210.txt", "r", encoding="utf-8")as f:
         tmp = f.read()
     soup = BeautifulSoup(tmp, "html.parser")
-    # print(eceParseSimple(soup.select("html")[9]))
-    # eceParse(soup.select("html")[0])
-    # print(eceParse(soup.select("html")[0]))
+    
     dataList = []
-    for n, soupHtml in enumerate(soup.select("html")[137:138]):
+    for n, soupHtml in enumerate(soup.select("html")[:]):
         print(n, soupHtml.select("span#lblSchName102")[0].text)
         if "lblDGItemGroup" in str(soupHtml):
             dataList.append(eceParse(soupHtml))
         else:
             dataList.append(eceParseSimple(soupHtml))
 
-    print(dataList)
-    # print(len(dataList))
-    # with open("./result/demoOutput.txt", "w", encoding="utf-8")as w:
-    #     w.write(str(dataList))
-    # with open("./result/demoOutputJson.txt", "w", encoding="utf-8")as w:
-    #     w.write(json.dumps(dataList))
+        if n % 1000 == 0 and n != 0:
+            with open("./result/output/demoOutput{}.txt".format(n), "w", encoding="utf-8") as w:
+                w.write(str(dataList))
+            with open("./result/output/demoOutputJson{}.txt".format(n), "w", encoding="utf-8") as w:
+                w.write(json.dumps(dataList))
+            dataList = []
+            
+    if dataList:
+        with open("./result/output/demoOutputResident.txt", "w", encoding="utf-8") as w:
+            w.write(str(dataList))
+        with open("./result/output/demoOutputJsonResident.txt", "w", encoding="utf-8") as w:
+            w.write(json.dumps(dataList))
