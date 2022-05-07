@@ -27,6 +27,7 @@ def buildAgeJson():
 
 def checkPeriod(soup: BeautifulSoup, ageN) -> tuple:
     resultPeriod = []
+    periodUnitDict = {"月": "Month", "學期": "Semester"}
     tmp = soup.select("table#GridView{}".format(ageN))[0]
     for i in range(1, 7):
         checkVoidValue = tmp.select("tr")[i].select("span")
@@ -36,13 +37,13 @@ def checkPeriod(soup: BeautifulSoup, ageN) -> tuple:
                 if duration.replace(",", "").isdigit():
                     resultPeriod.append(None)
                 else:
-                    resultPeriod.append(duration)
+                    resultPeriod.append(periodUnitDict[duration])
             else:
                 duration = checkVoidValue[1].text
                 if duration.replace(",", "").isdigit():
                     resultPeriod.append(None)
                 else:
-                    resultPeriod.append(duration)
+                    resultPeriod.append(periodUnitDict[duration])
         else:
             resultPeriod.append(None)
     return tuple(resultPeriod)
@@ -57,7 +58,7 @@ def extractPeriod(soup: BeautifulSoup, ageN, resultJson):
     resultJson["course"]["first_semester"]["class"]["half_day"]["activity"]["period"] = periodTuple[3]
     resultJson["course"]["first_semester"]["class"]["half_day"]["lunch"]["period"] = periodTuple[4]
     resultJson["course"]["first_semester"]["class"]["half_day"]["snack"]["period"] = periodTuple[5]
-    resultJson["course"]["first_semester"]["class"]["half_day"]["all_in_cost"]["period"] = "學期"
+    resultJson["course"]["first_semester"]["class"]["half_day"]["all_in_cost"]["period"] = "Semester"
 
     resultJson["course"]["first_semester"]["class"]["full_day"]["tuition"]["period"] = periodTuple[0]
     resultJson["course"]["first_semester"]["class"]["full_day"]["miscellaneous"]["period"] = periodTuple[1]
@@ -65,7 +66,7 @@ def extractPeriod(soup: BeautifulSoup, ageN, resultJson):
     resultJson["course"]["first_semester"]["class"]["full_day"]["activity"]["period"] = periodTuple[3]
     resultJson["course"]["first_semester"]["class"]["full_day"]["lunch"]["period"] = periodTuple[4]
     resultJson["course"]["first_semester"]["class"]["full_day"]["snack"]["period"] = periodTuple[5]
-    resultJson["course"]["first_semester"]["class"]["full_day"]["all_in_cost"]["period"] = "學期"
+    resultJson["course"]["first_semester"]["class"]["full_day"]["all_in_cost"]["period"] = "Semester"
 
     resultJson["course"]["second_semester"]["class"]["half_day"]["tuition"]["period"] = periodTuple[0]
     resultJson["course"]["second_semester"]["class"]["half_day"]["miscellaneous"]["period"] = periodTuple[1]
@@ -73,7 +74,7 @@ def extractPeriod(soup: BeautifulSoup, ageN, resultJson):
     resultJson["course"]["second_semester"]["class"]["half_day"]["activity"]["period"] = periodTuple[3]
     resultJson["course"]["second_semester"]["class"]["half_day"]["lunch"]["period"] = periodTuple[4]
     resultJson["course"]["second_semester"]["class"]["half_day"]["snack"]["period"] = periodTuple[5]
-    resultJson["course"]["second_semester"]["class"]["half_day"]["all_in_cost"]["period"] = "學期"
+    resultJson["course"]["second_semester"]["class"]["half_day"]["all_in_cost"]["period"] = "Semester"
 
     resultJson["course"]["second_semester"]["class"]["full_day"]["tuition"]["period"] = periodTuple[0]
     resultJson["course"]["second_semester"]["class"]["full_day"]["miscellaneous"]["period"] = periodTuple[1]
@@ -81,7 +82,7 @@ def extractPeriod(soup: BeautifulSoup, ageN, resultJson):
     resultJson["course"]["second_semester"]["class"]["full_day"]["activity"]["period"] = periodTuple[3]
     resultJson["course"]["second_semester"]["class"]["full_day"]["lunch"]["period"] = periodTuple[4]
     resultJson["course"]["second_semester"]["class"]["full_day"]["snack"]["period"] = periodTuple[5]
-    resultJson["course"]["second_semester"]["class"]["full_day"]["all_in_cost"]["period"] = "學期"
+    resultJson["course"]["second_semester"]["class"]["full_day"]["all_in_cost"]["period"] = "Semester"
 
     pass
 
