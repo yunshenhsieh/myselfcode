@@ -27,7 +27,7 @@ def buildAgeJson():
 
 def checkPeriod(soup: BeautifulSoup, ageN) -> tuple:
     resultPeriod = []
-    periodUnitDict = {"月": "Month", "學期": "Semester"}
+    periodUnitDict = {"月": "month", "學期": "semester"}
     tmp = soup.select("table#GridView{}".format(ageN))[0]
     for i in range(1, 7):
         checkVoidValue = tmp.select("tr")[i].select("span")
@@ -180,7 +180,7 @@ if __name__ == "__main__":
     with open("./result/ece_1_32210.txt", "r", encoding="utf-8")as f:
         tmp = f.read()
     soup = BeautifulSoup(tmp, "html.parser")
-    
+
     dataList = []
     for n, soupHtml in enumerate(soup.select("html")[:]):
         print(n, soupHtml.select("span#lblSchName102")[0].text)
@@ -190,14 +190,10 @@ if __name__ == "__main__":
             dataList.append(eceParseSimple(soupHtml))
 
         if n % 1000 == 0 and n != 0:
-            with open("./result/output/demoOutput{}.txt".format(n), "w", encoding="utf-8") as w:
-                w.write(str(dataList))
             with open("./result/output/demoOutputJson{}.txt".format(n), "w", encoding="utf-8") as w:
-                w.write(json.dumps(dataList))
+                w.write(json.dumps(dataList, ensure_ascii=False))
             dataList = []
-            
+
     if dataList:
-        with open("./result/output/demoOutputResident.txt", "w", encoding="utf-8") as w:
-            w.write(str(dataList))
         with open("./result/output/demoOutputJsonResident.txt", "w", encoding="utf-8") as w:
-            w.write(json.dumps(dataList))
+            w.write(json.dumps(dataList, ensure_ascii=False))
