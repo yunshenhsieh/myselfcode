@@ -1,4 +1,4 @@
-import ddddocr, time, random
+import ddddocr, time, random, os
 from bs4 import BeautifulSoup
 from datetime import datetime
 import selenium.webdriver
@@ -8,11 +8,11 @@ from selenium.webdriver.common.by import By
 import threading, ctypes, inspect
 
 def main(driverExe, recordItemNum):
-    global recordPageNum, timeoutPoint, totalPage
+    global pageNum, totalPage
     print("main work")
     time.sleep(10)
     WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "divResult")))
-    totalPage = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#lblRowCnt")[0].text.replace(",",""))
+    totalPage = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#PageControl1_lblTotalPage")[0].text.replace(",",""))
     pageNum = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#PageControl1_lblCurrentPage")[0].text.replace(",",""))
     itemCnt = recordItemNum
     failPageCnt = 0
@@ -31,42 +31,103 @@ def main(driverExe, recordItemNum):
                     itemName = soup.select("span#GridView1_lblSchName_{}".format(itemCnt))[0].text
                     print("Download No.{} page, No.{} item, {}。".format(pageNum, itemCnt + 1, itemName))
                     mainPageToDataPage(driverExe, itemCnt)
-                    timeoutPoint = False
                     itemCnt += 1
                 except Exception as e:
-                    if failItemCnt < 4 :
+                    if failItemCnt < 3 :
                         failItemCnt += 1
                         driverSwitchLastWindow(driverExe)
                         time.sleep(10)
                     else:
-                        with open("./error_log.txt", "a", encoding="utf-8")as w:
-                            errLog = "***{} | {} | 第 {} 頁 | 第 {} 項 | 原因：{}\n".format(datetime.now(), itemName, pageNum, itemCnt + 1, e)
-                            w.write(errLog)
+                        errLog = "***{} | {} | 第 {} 頁 | 第 {} 項 | 原因：{}\n".format(datetime.now(), itemName, pageNum, itemCnt + 1, e)
+                        if "timeout" in errLog:
+                            errLog = "{}|{}\n".format(pageNum, itemCnt)
+                            with open("./timeout_log.txt", "a", encoding="utf-8") as w:
+                                w.write(errLog)
+                        else:
+                            with open("./error_log.txt", "a", encoding="utf-8")as w:
+                                w.write(errLog)
                         print(e)
                         failItemCnt = 0
                         itemCnt += 1
                         driverSwitchLastWindow(driverExe)
                         pass
-                timeoutPoint = False
-            try:
-                driverSwitchLastWindow(driverExe)
-                nextPage(driverExe)
-                failPageCnt = 0
-                itemCnt = 0
-                timeoutPoint = False
-            except Exception as e:
-                failPageCnt += 1
-                with open("./error_log.txt", "a", encoding="utf-8") as w:
-                    errLog = "**{} | {} | 第 {} 頁 | 原因：{}\n".format(datetime.now(), itemName, pageNum, e)
-                    w.write(errLog)
-                driverSwitchLastWindow(driverExe)
-            timeoutPoint = False
+
+            driverSwitchLastWindow(driverExe)
+            nextPage(driverExe)
+            failPageCnt = 0
+            itemCnt = 0
+
         else:
             time.sleep(10)
             driverSwitchLastWindow(driverExe)
             nextPage(driverExe)
             itemCnt = 0
-            timeoutPoint = False
+
+    pass
+
+def mainByName(nameList: list):
+    headers = {
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
+        "referer": "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
+    }
+    url = "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
+    seleniumOptions = selenium.webdriver.ChromeOptions()
+    seleniumOptions.add_argument("user-agent={}".format(headers["user-agent"]))
+    seleniumOptions.add_argument("referer={}".format(headers["referer"]))
+    seleniumOptions.add_experimental_option('excludeSwitches', ['enable-automation'])
+    driverExe = selenium.webdriver.Chrome(chrome_options=seleniumOptions,
+                                          executable_path="../../driver/chromedriver.exe")
+
+    driverExe.get(url)
+    time.sleep(4)
+    for n, name in enumerate(nameList):
+        WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "txtKeyNameS")))
+        driverExe.find_element(By.ID, "txtKeyNameS").clear()
+        driverExe.find_element(By.ID, "txtKeyNameS").send_keys(name)
+        time.sleep(5)
+        driverExe.find_element(By.ID, "btnSearch").click()
+        print("mainByName work")
+        time.sleep(10)
+        itemCnt = 0
+        failPageCnt = 0
+        if failPageCnt == 0:
+            js = "window.scrollBy(0, 40)"
+            driverExe.execute_script(js)
+            print("正在處理 第{}項 {}。".format(n, name))
+            soup = BeautifulSoup(driverExe.page_source, "html.parser")
+            try:
+                itemNum = str(soup.select("table#GridView1")[0]).count("GridView1_btnMore")
+            except Exception as e:
+                errLog = soup.select("span#lblMsg")[0].text
+                errLog = "***{} | {} | 原因：{}\n".format(datetime.now(), name, errLog)
+                with open("./other_error.txt", "a", encoding="utf-8") as w:
+                    w.write(errLog)
+
+            failItemCnt = 0
+            while itemNum > itemCnt:
+                try:
+                    itemName = soup.select("span#GridView1_lblSchName_{}".format(itemCnt))[0].text
+                    print("Download {}。".format(itemName))
+                    mainPageToDataPage(driverExe, itemCnt)
+                    itemCnt += 1
+                except Exception as e:
+                    if failItemCnt < 3:
+                        failItemCnt += 1
+                        driverSwitchLastWindow(driverExe)
+                        time.sleep(10)
+                    else:
+                        errLog = "***{} | {} | 原因：{}\n".format(datetime.now(), itemName, e)
+                        if "timeout" in errLog:
+                            errLog = "{}\n".format(name)
+                            with open("./timeout_log.txt", "a", encoding="utf-8") as w:
+                                w.write(errLog)
+                        else:
+                            with open("./error_log.txt", "a", encoding="utf-8") as w:
+                                w.write(errLog)
+                        print(e)
+                        failItemCnt = 0
+                        itemCnt += 1
+                        driverSwitchLastWindow(driverExe)
     pass
 
 def mainPageToDataPage(driverExe, num):
@@ -102,6 +163,8 @@ def getValidNum(driverExe, num) -> str:
     renewValidNum(driverExe, num)
     WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "GridView1_imgValidateCode_{}".format(num))))
     time.sleep(random.randint(4, 6))
+    js = "window.scrollBy(0, 40)"
+    driverExe.execute_script(js)
     driverExe.find_element(By.ID, "GridView1_imgValidateCode_{}".format(num)).screenshot("demo.jpg")
     global ocr
     with open("./demo.jpg", "rb") as f:
@@ -110,7 +173,7 @@ def getValidNum(driverExe, num) -> str:
         print(validValue)
     while True:
         validValue = validValue.replace("g", "9").replace("o", "0")
-        if validValue.isdigit():
+        if validValue.isdigit() and len(str(validValue)) == 4:
             return validValue
         else:
             renewValidNum(driverExe, num)
@@ -125,6 +188,8 @@ def getValidNum(driverExe, num) -> str:
 
 def renewValidNum(driverExe, num):
     driverExe.find_element(By.ID, "GridView1_lbReGen_{}".format(num)).click()
+    js = "window.scrollBy(0, 40)"
+    driverExe.execute_script(js)
     time.sleep(random.randint(4, 6))
     pass
 
@@ -186,33 +251,71 @@ def stop_thread(thread):
     _async_raise(thread.ident, SystemExit)
     print("stop thread")
 
+def totalPageModelStart(startPageNum, startItemNum):
+    thread_1 = threading.Thread(target=main, args=(
+        switchToRecordPageNum(startPageNum), startItemNum))
+    thread_1.start()
+    totalPage = 1
+    pageNum = 0
+
+    while totalPage > pageNum:
+        print(totalPage, pageNum)
+        with open("./timeout_log.txt", "r", encoding="utf-8") as f:
+            checkLog = f.read().strip()
+        if checkLog:
+            checkLog = checkLog.split("\n")
+            if checkLog.count(checkLog[-1]) >= 3:
+                stop_thread(thread_1)
+                pageNum, itemCnt = checkLog[-1].split("|")
+                pageNum, itemCnt = int(pageNum), int(itemCnt)
+                if itemCnt < 9:
+                    print("第{}頁，第{}項，開始重啟。".format(pageNum, itemCnt + 1))
+
+                    thread_1 = threading.Thread(target=main, args=(switchToRecordPageNum(pageNum), itemCnt))
+                    thread_1.start()
+                    with open("./timeout_log.txt", "w", encoding="utf-8") as w:
+                        w.write("")
+                else:
+                    print("第{}頁，第{}項，開始重啟。".format(pageNum + 1, 0 + 1))
+
+                    thread_1 = threading.Thread(target=main, args=(switchToRecordPageNum(pageNum + 1), 0))
+                    thread_1.start()
+                    with open("./timeout_log.txt", "w", encoding="utf-8") as w:
+                        w.write("")
+            else:
+                stop_thread(thread_1)
+                pageNum, itemCnt = checkLog[-1].split("|")
+                pageNum, itemCnt = int(pageNum), int(itemCnt)
+                print("第{}頁，第{}項，開始重啟。".format(pageNum, itemCnt + 1))
+
+                thread_1 = threading.Thread(target=main, args=(switchToRecordPageNum(pageNum), itemCnt))
+                thread_1.start()
+        else:
+            time.sleep(120)
+
 if __name__ == "__main__":
-    recordPageNum = 1
-    recordItemNum = 5 # 0-9
-    timeoutNum = 0
-    globalException = ""
-    timeoutPoint = True
-    totalPage = 0
 
     ocr = ddddocr.DdddOcr()
-    # headers = {
-    #     "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36",
-    #     "referer": "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
-    # }
-    # url = "https://ap.ece.moe.edu.tw/webecems/pubSearch.aspx"
-    # seleniumOptions = selenium.webdriver.ChromeOptions()
-    # seleniumOptions.add_argument("user-agent={}".format(headers["user-agent"]))
-    # seleniumOptions.add_argument("referer={}".format(headers["referer"]))
-    # seleniumOptions.add_experimental_option('excludeSwitches', ['enable-automation'])
-    # driverExe = selenium.webdriver.Chrome(chrome_options=seleniumOptions,
-    #                                       executable_path="../../driver/chromedriver.exe")
-    # driverExe.get(url)
-    # time.sleep(4)
-    # WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "btnSearch")))
-    # driverExe.find_element(By.ID, "btnSearch").click()
-    # time.sleep(5)
-    # totalPage = int(BeautifulSoup(driverExe.page_source, "html.parser").select("span#lblRowCnt")[0].text.replace(",", ""))
-    # print(totalPage)
-    # driverExe.quit()
+    # totalPageModelStart(430, 5)
+    thread_1 = threading.Thread(target=main, args=(
+        switchToRecordPageNum(689), 9))
+    thread_1.start()
+    totalPage = 1
+    pageNum = 0
 
-    main(switchToRecordPageNum(59), recordItemNum)
+    while totalPage > pageNum:
+        print(totalPage, pageNum)
+        with open("./timeout_log.txt", "r", encoding="utf-8") as f:
+            checkLog = f.read().strip()
+        if checkLog:
+            stop_thread(thread_1)
+            pageNum, itemCnt = checkLog.split("|")
+            pageNum, itemCnt = int(pageNum), int(itemCnt)
+            print("第{}頁，第{}項，開始重啟。".format(pageNum, itemCnt + 1))
+
+            thread_1 = threading.Thread(target=main, args=(switchToRecordPageNum(pageNum), itemCnt))
+            thread_1.start()
+            with open("./timeout_log.txt", "w", encoding="utf-8") as w:
+                w.write("")
+        else:
+            time.sleep(120)
