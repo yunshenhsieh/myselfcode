@@ -7,7 +7,7 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
 import threading, ctypes, inspect
 
-def main(driverExe, recordItemNum):
+def main(driverExe, recordItemNum, timeoutCntList):
     global pageNum, totalPage
     print("main work")
     time.sleep(10)
@@ -33,7 +33,7 @@ def main(driverExe, recordItemNum):
                     mainPageToDataPage(driverExe, itemCnt)
                     itemCnt += 1
                 except Exception as e:
-                    if failItemCnt < 3 :
+                    if failItemCnt < 2:
                         failItemCnt += 1
                         driverSwitchLastWindow(driverExe)
                         time.sleep(10)
@@ -41,6 +41,7 @@ def main(driverExe, recordItemNum):
                         errLog = "***{} | {} | 第 {} 頁 | 第 {} 項 | 原因：{}\n".format(datetime.now(), itemName, pageNum, itemCnt + 1, e)
                         if "timeout" in errLog:
                             errLog = "{}|{}\n".format(pageNum, itemCnt)
+                            timeoutCntList.append("{}|{}".format(pageNum, itemCnt))
                             with open("./timeout_log.txt", "a", encoding="utf-8") as w:
                                 w.write(errLog)
                         else:
@@ -111,7 +112,7 @@ def mainByName(nameList: list):
                     mainPageToDataPage(driverExe, itemCnt)
                     itemCnt += 1
                 except Exception as e:
-                    if failItemCnt < 3:
+                    if failItemCnt < 2:
                         failItemCnt += 1
                         driverSwitchLastWindow(driverExe)
                         time.sleep(10)
@@ -220,6 +221,7 @@ def switchToRecordPageNum(pageNum) -> object:
     WebDriverWait(driverExe, 50).until(expected_conditions.presence_of_element_located((By.ID, "PageControl1_txtPages")))
     driverExe.find_element(By.ID, "PageControl1_txtPages").clear()
     driverExe.find_element(By.ID, "PageControl1_txtPages").send_keys(pageNum)
+    time.sleep(5)
     driverExe.find_element(By.ID, "PageControl1_lbPageChg").click()
 
     return driverExe
@@ -297,25 +299,52 @@ if __name__ == "__main__":
 
     ocr = ddddocr.DdddOcr()
     # totalPageModelStart(430, 5)
-    thread_1 = threading.Thread(target=main, args=(
-        switchToRecordPageNum(689), 9))
-    thread_1.start()
+
     totalPage = 1
     pageNum = 0
+    timeoutCntList = ["start"]
+
+    thread_1 = threading.Thread(target=main, args=(
+        switchToRecordPageNum(689), 9, timeoutCntList))
+    thread_1.start()
 
     while totalPage > pageNum:
-        print(totalPage, pageNum)
         with open("./timeout_log.txt", "r", encoding="utf-8") as f:
-            checkLog = f.read().strip()
+            checkLog = f.read()
         if checkLog:
-            stop_thread(thread_1)
-            pageNum, itemCnt = checkLog.split("|")
-            pageNum, itemCnt = int(pageNum), int(itemCnt)
-            print("第{}頁，第{}項，開始重啟。".format(pageNum, itemCnt + 1))
+            if timeoutCntList.count(timeoutCntList[-1]) < 2:
+                stop_thread(thread_1)
+                pageNum, itemCnt = checkLog.split("|")
+                pageNum, itemCnt = int(pageNum), int(itemCnt)
+                print("第{}頁，第{}項，開始重啟。".format(pageNum, itemCnt + 1))
 
-            thread_1 = threading.Thread(target=main, args=(switchToRecordPageNum(pageNum), itemCnt))
-            thread_1.start()
-            with open("./timeout_log.txt", "w", encoding="utf-8") as w:
-                w.write("")
+                thread_1 = threading.Thread(target=main, args=(switchToRecordPageNum(pageNum), itemCnt, timeoutCntList))
+                thread_1.start()
+                with open("./timeout_log.txt", "w", encoding="utf-8") as w:
+                    w.write("")
+            else:
+                if timeoutCntList[-1].split("|")[-1] == 9:
+                    stop_thread(thread_1)
+                    pageNum, itemCnt = checkLog.split("|")
+                    pageNum, itemCnt = int(pageNum), 0
+                    print("超過timeout次數，跳到第{}頁，第{}項，開始重啟。".format(pageNum + 1, itemCnt))
+
+                    timeoutCntList = ["start"]
+                    thread_1 = threading.Thread(target=main, args=(switchToRecordPageNum(pageNum + 1), itemCnt, timeoutCntList))
+                    thread_1.start()
+                    with open("./timeout_log.txt", "w", encoding="utf-8") as w:
+                        w.write("")
+                else:
+                    stop_thread(thread_1)
+                    pageNum, itemCnt = checkLog.split("|")
+                    pageNum, itemCnt = int(pageNum), int(itemCnt) + 1
+                    print("超過timeout次數，第{}頁，跳到第{}項，開始重啟。".format(pageNum, itemCnt + 1))
+
+                    timeoutCntList = ["start"]
+                    thread_1 = threading.Thread(target=main,
+                                                args=(switchToRecordPageNum(pageNum), itemCnt, timeoutCntList))
+                    thread_1.start()
+                    with open("./timeout_log.txt", "w", encoding="utf-8") as w:
+                        w.write("")
         else:
             time.sleep(120)
