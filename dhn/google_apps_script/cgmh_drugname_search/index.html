@@ -3,27 +3,28 @@
   <head>
     <base target="_top">
     <style type="text/css">
-	button{
-		color: white;
-	}
-	h1{
-		color: white;
-	}
-	*{
-		background-color: black;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-	.wrap{
-		width: 100%;
-	}
-	.item{
-		margin:0px 10px 20px;
-		width:800px;
-		height:20px;
-		margin:0 auto;
-	}
+    button{
+      color: white;
+      font-size: 80px;
+    }
+    h1{
+      color: white;
+    }
+		*{
+      background-color: black;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+		.wrap{
+			width: 100%;
+		}
+		.item{
+			margin:0px 10px 20px;
+      width:800px;
+      height:20px;
+      margin:0 auto;
+		}
 	</style>
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
   <script>function sendData() {
@@ -158,13 +159,13 @@
       <br>
         <input id="input_user" type="text" style="font-size: 150px; width: 1200px; background-color: white" name="userName">
       <br><br><br>
-        <button type="submit" style="font-size: 50px;" onclick="sendData()">用料位號查詢</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <br><br>
-      <button type="submit" style="font-size: 50px;" onclick="sendProductCode()">用材編查詢</button>
+      <button type="submit" onclick="sendData()">用料位號查詢</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
       <br><br><br>
-      <button type="submit" style="font-size: 50px;" onclick="barcodeGenerate()">產生Barcode</button>       
+      <button type="submit" onclick="sendProductCode()">用材編查詢</button>
       <br><br><br>
-        <button type="reset" style="font-size: 50px;" onclick="clean()">清除</button>
+      <button type="submit" onclick="barcodeGenerate()">產生Barcode</button>       
+      <br><br><br>
+      <button type="reset" onclick="clean()">清除</button>
       <br><br><br>
     
     <svg id="barcode_svg"></svg>
