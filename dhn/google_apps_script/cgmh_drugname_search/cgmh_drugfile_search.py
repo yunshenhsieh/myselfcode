@@ -48,6 +48,12 @@ def drugFileClean(drugFilePath, PBLocationFilePath, PPLocationFilePath) -> [[str
         if content[12]:
             result.append([content[0], content[1], content[2], content[12], content[57],
                            PBDrugLocationDict.get(content[0], ""), PPDrugLocationDict.get(content[0], "")])
+    updateTime = ["更新時間",
+                  "Drug檔更新日：{}".format("< Update time >"),
+                  "PB定位更新日：{}".format("< Update time >"),
+                  "PP定位更新日：{}".format("< Update time >"),
+                  "Version：{}".format("< Version number >")]
+    result.append(updateTime)
 
     return result
 
