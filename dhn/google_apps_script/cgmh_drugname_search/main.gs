@@ -3,8 +3,8 @@ function doGet() {
 }
 
 function searchSheet(drugCode){
-  var url = 'https://docs.google.com/spreadsheets/d/1eFLyfaSQC8YXJ1mECZHhO2B2rVHpxfRUuiC5BROtnAQ/edit#gid=225650400'
-  var name = 'drugfile'
+  var url = '<google sheet URL>'
+  var name = '<sheet page name>'
   var SpreadSheet = SpreadsheetApp.openByUrl(url);
   var SheetName = SpreadSheet.getSheetByName(name);
   var targeRow = SheetName.getRange("D:D").createTextFinder(drugCode).matchEntireCell(true).findAll().map((r) => r.getA1Notation());
@@ -19,8 +19,8 @@ function searchSheet(drugCode){
 }
 
 function searchProductCode(productCode){
-  var url = 'https://docs.google.com/spreadsheets/d/1eFLyfaSQC8YXJ1mECZHhO2B2rVHpxfRUuiC5BROtnAQ/edit#gid=225650400'
-  var name = 'drugfile'
+  var url = '<google sheet URL>'
+  var name = '<sheet page name>'
   var SpreadSheet = SpreadsheetApp.openByUrl(url);
   var SheetName = SpreadSheet.getSheetByName(name);
   var targeRow = SheetName.getRange("A:A").createTextFinder(productCode).matchEntireCell(true).findAll().map((r) => r.getA1Notation());
@@ -35,8 +35,8 @@ function searchProductCode(productCode){
 }
 
 function searchUpdateTime(){
-  var url = 'https://docs.google.com/spreadsheets/d/1eFLyfaSQC8YXJ1mECZHhO2B2rVHpxfRUuiC5BROtnAQ/edit#gid=225650400'
-  var name = 'drugfile'
+  var url = '<google sheet URL>'
+  var name = '<sheet page name>'
   var SpreadSheet = SpreadsheetApp.openByUrl(url);
   var SheetName = SpreadSheet.getSheetByName(name);
   var targeRow = SheetName.getRange("A:A").createTextFinder("更新時間").matchEntireCell(true).findAll().map((r) => r.getA1Notation());
