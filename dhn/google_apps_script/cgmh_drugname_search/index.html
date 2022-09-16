@@ -162,8 +162,21 @@
       };      
     </script>
 
+    <script>function updateTime() {
+        google.script.run.withSuccessHandler(
+          function(data){            
+              document.getElementById("drugfile_update_date_id").innerHTML = data[1];
+              document.getElementById("pb_locationfile_update_date_id").innerHTML = data[2];
+              document.getElementById("pp_locationfile_update_date_id").innerHTML = data[3];
+              document.getElementById("version_id").innerHTML = data[4];
+
+          }
+        ).searchUpdateTime();
+      };      
+    </script>
+
   </head>
-  <body>
+  <body onload="updateTime()">
     <div class="wrap">
 	<div class="item">
         <br>
@@ -191,10 +204,11 @@
     <h1 id="pb_location_title"></h1><h1 id="pb_location" style="font-size: 4em; color: #FFA600;"></h1><br><br>
     <h1 id="pp_location_title"></h1><h1 id="pp_location" style="font-size: 4em; color: #FFA600;"></h1><br><br>
     <br><br><br>
-    <h4 style="font-size: 2em; color: #FFA600;">Drug檔更新日：2022/8/26</h4>
-    <h4 style="font-size: 2em; color: #FFA600;">庫台定位更新日：2022/8/26</h4><br>
-    <h4 style="color: #FFA600;">Version：1.6.0<h4>
-    <h4 style="color: #FFA600;">問題聯繫：Vincent 燊<h4>
+    <h4 id="drugfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4>
+    <h4 id="pb_locationfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4>
+    <h4 id="pp_locationfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4><br>
+    <h4 id="version_id" style="color: #FFA600;"><h4>
+    <h4 style="color: #FFA600;">作者：Vincent 燊<h4>
 	</div>  
 </div>
   </body>
