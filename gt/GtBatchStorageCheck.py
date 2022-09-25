@@ -40,24 +40,24 @@ def gtStorageCheck(driverExe, prodNumList, fileWriter0, fileWriter1):
             soup = soup.select("div.pdcnt_info_number")
             prodNum = soup[0].select("option")[-1].text
             if int(prodNum) == 0:
-                fileWriter0.write(prodNumList[n].strip() + "\n")
+                fileWriter0.write("商品編號：{}，無庫存。\n".format(prodNumList[n].strip()))
                 fileWriter0.flush()
-                print("商品編：{}，無庫存。".format(prodNumList[n].strip()))
+                print("商品編號：{}，無庫存。".format(prodNumList[n].strip()))
             else:
-                fileWriter1.write("{}_{}\n".format(prodNumList[n].strip(), prodNum))
+                fileWriter1.write("商品編號：{}，庫存為{}。\n".format(prodNumList[n].strip(), prodNum))
                 fileWriter1.flush()
-                print("商品編：{}，庫存為{}。".format(prodNumList[n].strip(), prodNum))
+                print("商品編號：{}，庫存為{}。".format(prodNumList[n].strip(), prodNum))
         else:
-            fileWriter0.write(prodNumList[n].strip() + "，沒有上架。\n")
+            fileWriter0.write("商品編號：{}，沒有上架。\n".format(prodNumList[n].strip()))
             fileWriter0.flush()
-            print("商品編：{}，沒有上架。".format(prodNumList[n].strip()))
+            print("商品編號：{}，沒有上架。".format(prodNumList[n].strip()))
 
         time.sleep(random.randint(5, 7))
 
     pass
 
 if __name__ == "__main__":
-    print("版本：1.1.1\n發佈日期：2022/9/25\n作者：Vincent 燊。\n啟動執行中…")
+    print("版本：1.1.2\n發佈日期：2022/9/25\n作者：Vincent 燊。\n啟動執行中…")
     try:
         driverExe = setSeleniumOptionsAndDriverExe()
     except selenium.common.exceptions.SessionNotCreatedException as e:
