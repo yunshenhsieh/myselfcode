@@ -50,11 +50,13 @@ if __name__ == "__main__":
         print("驅動器與當前chrome瀏覽器版本不同。")
         print("請確認瀏覽器版本後，至https://chromedriver.chromium.org/downloads下載對應版本。")
         print("解壓縮後，將檔名「chromedriver.exe」放入「driver」資料夾，刪除原先的chromedriver.exe即可正常運作。")
+        input("按enter結束程式。")
     except selenium.common.exceptions.WebDriverException as e:
         print("啟動失敗!!!")
         print("請檢查「driver」資料夾內是否有「chromedriver.exe」檔案。")
         print("沒有請確認瀏覽器版本後，至https://chromedriver.chromium.org/downloads下載對應版本。")
         print("解壓縮後，將檔名「chromedriver.exe」放入「driver」資料夾，即可正常運作。")
+        input("按enter結束程式。")
 
     with open("./batch/gt_prod_num_storage.txt", "r", encoding="utf-8")as f:
         prodNumList = f.readlines()
