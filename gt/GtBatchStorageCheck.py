@@ -42,8 +42,19 @@ def gtStorageCheck(driverExe, prodNumList, fileWriter0, fileWriter1):
     pass
 
 if __name__ == "__main__":
-    print("版本：1.0.0\n發佈日期：2022/9/25\n作者：Vincent 燊。\n啟動執行中…")
-    driverExe = setSeleniumOptionsAndDriverExe()
+    print("版本：1.0.1\n發佈日期：2022/9/25\n作者：Vincent 燊。\n啟動執行中…")
+    try:
+        driverExe = setSeleniumOptionsAndDriverExe()
+    except selenium.common.exceptions.SessionNotCreatedException as e:
+        print("啟動失敗!!!")
+        print("驅動器與當前chrome瀏覽器版本不同。")
+        print("請確認瀏覽器版本後，至https://chromedriver.chromium.org/downloads下載對應版本。")
+        print("解壓縮後，將檔名「chromedriver.exe」放入「driver」資料夾，刪除原先的chromedriver.exe即可正常運作。")
+    except selenium.common.exceptions.WebDriverException as e:
+        print("啟動失敗!!!")
+        print("請檢查「driver」資料夾內是否有「chromedriver.exe」檔案。")
+        print("沒有請確認瀏覽器版本後，至https://chromedriver.chromium.org/downloads下載對應版本。")
+        print("解壓縮後，將檔名「chromedriver.exe」放入「driver」資料夾，即可正常運作。")
 
     with open("./batch/gt_prod_num_storage.txt", "r", encoding="utf-8")as f:
         prodNumList = f.readlines()
@@ -52,4 +63,5 @@ if __name__ == "__main__":
     fileWriter1 = open("./result/{}.txt".format(datetime.now().strftime("%Y%m%d_%H_%M_%S")), "a", encoding="utf-8")
 
     gtStorageCheck(driverExe=driverExe, prodNumList=prodNumList[1:], fileWriter0=fileWriter0, fileWriter1=fileWriter1)
+
     input("按enter結束程式。")
