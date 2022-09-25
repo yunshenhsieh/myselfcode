@@ -42,7 +42,7 @@ def gtStorageCheck(driverExe, prodNumList, fileWriter0, fileWriter1):
     pass
 
 if __name__ == "__main__":
-
+    print("版本：1.0.0\n發佈日期：2022/9/25\n作者：Vincent 燊。\n啟動執行中…")
     driverExe = setSeleniumOptionsAndDriverExe()
 
     with open("./batch/gt_prod_num_storage.txt", "r", encoding="utf-8")as f:
