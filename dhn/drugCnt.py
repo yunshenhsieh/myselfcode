@@ -5,12 +5,12 @@ from google.oauth2 import service_account
 
 def drugCntUpdateToGsheet(sheet_name: int, data_finish: list):
     # If modifying these scopes, delete the file token.json.
-    SERVICE_ACCOUNT_FILE = './{}'.format(os.getenv('<py_gsheet_key_filename>'))
+    SERVICE_ACCOUNT_FILE = './{}'.format(os.getenv('google_sheet_api_key'))
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
     creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     # The ID and range of a sample spreadsheet.
     # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
-    SAMPLE_SPREADSHEET_ID = os.getenv('<drug_cnt_gsheet_id>')
+    SAMPLE_SPREADSHEET_ID = os.getenv('drug_cnt_id')
     service = build('sheets', 'v4', credentials=creds)
 
     # Call the Sheets API
@@ -47,9 +47,9 @@ def drugCntOutput(fileName: str) -> list:
             resource.append(data)
 
     dataFinish = dataClean(resource)
-    dataFinish = classifyGroup(dataFinish)
+    separateLevelGroupFinishList, nstuList = classifyGroup(dataFinish)
 
-    return dataFinish
+    return separateLevelGroupFinishList, nstuList
 
 def dataClean(resource: list) -> list:
     dataFinish = []
@@ -88,19 +88,38 @@ def classifyGroup(dataFinish: list) -> list:
     tClass = []
     uClass = []
 
+    nDict = {}
+    sDict = {}
+    tDict = {}
+    uDict = {}
+
     for v_list in dataFinish:
         if ord(v_list[1][0]) <= 77:
             oClass.append(v_list)
         elif v_list[1][0] == "N":
             nClass.append(v_list)
+            nDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
+                nDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
+
         elif v_list[1][0] in ("P", "Q", "R"):
             pClass.append(v_list)
+
         elif v_list[1][0] in ("S", "V", "W", "X", "Y"):
             sClass.append(v_list)
+            sDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
+                sDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
+
         elif v_list[1][0] in ("T"):
             tClass.append(v_list)
+            tDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
+                tDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
+
         elif v_list[1][0] in ("U"):
             uClass.append(v_list)
+            uDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
+                uDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
+
+
 
     groupClassList = [
         oClass,
@@ -108,13 +127,23 @@ def classifyGroup(dataFinish: list) -> list:
         nClass,
         sClass,
         tClass,
-        uClass]
+        uClass
+    ]
+
+    nstuClassDictList = [
+        nDict,
+        sDict,
+        tDict,
+        uDict
+    ]
+
+    nstuList = nstuClassify(nstuClassDictList)
 
     separateLevelGroupFinishList = []
     for dataList in groupClassList:
         separateLevelGroupFinishList.append(separateLevel(dataList))
 
-    return separateLevelGroupFinishList
+    return separateLevelGroupFinishList, nstuList
 
 def separateLevel(groupClassList: list) -> list:
     separateFinishList = []
@@ -131,13 +160,57 @@ def separateLevel(groupClassList: list) -> list:
     separateFinishList = [["樓層", "料位號", "使用數量", "幾組", "藥品名稱"]] + separateFinishList
     return separateFinishList
 
+def nstuClassify(nstuClassDictList: list) -> list:
+    nstuList = [[], [], [], []]
+    for index, dataDict in enumerate(nstuClassDictList):
+        for k, val in dataDict.items():
+            tmp = nstuList[index]
+            k = k.split(",")
+            nstuList[index] = tmp + [[k[0], k[1], val, k[2]]]
+
+        nstuList[index].sort(key= lambda s: s[0])
+        nstuList[index] = [["料位號", "使用數量", "幾組", "藥品名稱"]] + nstuList[index]
+
+    return nstuList
+
+def delete_gsheet(sheet_id, gsheet_name_id):
+    # If modifying these scopes, delete the file token.json.
+    SERVICE_ACCOUNT_FILE = './{}'.format(os.getenv('google_sheet_api_key'))
+    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+    # The ID and range of a sample spreadsheet.
+    # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
+    SAMPLE_SPREADSHEET_ID = os.getenv('drug_cnt_id')
+    service = build('sheets', 'v4', credentials=creds)
+
+    # Call the Sheets API
+    sheet = service.spreadsheets()
+
+    # delete sheet json
+    new_sheet_name = {
+        'requests': [{
+            'deleteSheet': {
+                'sheetId': sheet_id
+            }
+        }]
+    }
+    # delete sheet exe
+    sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
 
 if __name__ == "__main__":
-    # version 1.0.0
+    # version 1.1.0
     load_dotenv()
-    recordDate = "<drug use data date>"
-    data = drugCntOutput("Batchdata{}.csv".format(recordDate))
-    print(type(data))
-    print(len((data)))
-    for cnt in range(len(data)):
-        drugCntUpdateToGsheet("{}".format(recordDate) + "0{}".format(cnt + 1), data[cnt])
+    recordDate = "20230220"
+    separateLevelGroupFinishList, nstuList = drugCntOutput("Batchdata{}.csv".format(recordDate))
+
+    for cnt in range(len(separateLevelGroupFinishList)):
+        drugCntUpdateToGsheet("{}".format(recordDate) + "0{}".format(cnt + 1), separateLevelGroupFinishList[cnt])
+
+    for cnt in range(len(nstuList)):
+        drugCntUpdateToGsheet("{}".format(recordDate) + "1{}".format(cnt + 1), nstuList[cnt])
+
+    # for cnt in range(6):
+    #     delete_gsheet("{}".format(recordDate) + "0{}".format(cnt + 1), os.getenv('drug_cnt_id'))
+
+    # for cnt in range(4):
+    #     delete_gsheet("{}".format(recordDate) + "1{}".format(cnt + 1), os.getenv('drug_cnt_id'))
