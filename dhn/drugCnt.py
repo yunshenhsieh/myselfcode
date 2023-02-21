@@ -24,7 +24,8 @@ def drugCntUpdateToGsheet(sheet_name: int, data_finish: list):
                 'properties': {
                     'sheetId': sheet_name,
                     'title': str(sheet_name),
-                    'index': 0
+                    'index': 0,
+                    'gridProperties': {'frozen_row_count': 1}
                 }
             }
         }]
@@ -88,38 +89,23 @@ def classifyGroup(dataFinish: list) -> list:
     tClass = []
     uClass = []
 
-    nDict = {}
-    sDict = {}
-    tDict = {}
-    uDict = {}
-
     for v_list in dataFinish:
         if ord(v_list[1][0]) <= 77:
             oClass.append(v_list)
         elif v_list[1][0] == "N":
             nClass.append(v_list)
-            nDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
-                nDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
 
         elif v_list[1][0] in ("P", "Q", "R"):
             pClass.append(v_list)
 
         elif v_list[1][0] in ("S", "V", "W", "X", "Y"):
             sClass.append(v_list)
-            sDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
-                sDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
 
         elif v_list[1][0] in ("T"):
             tClass.append(v_list)
-            tDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
-                tDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
 
         elif v_list[1][0] in ("U"):
             uClass.append(v_list)
-            uDict["{},{},{}".format(v_list[1], v_list[2], v_list[4])] = \
-                uDict.get("{},{},{}".format(v_list[1], v_list[2], v_list[4]), 0) + 1
-
-
 
     groupClassList = [
         oClass,
@@ -130,20 +116,13 @@ def classifyGroup(dataFinish: list) -> list:
         uClass
     ]
 
-    nstuClassDictList = [
-        nDict,
-        sDict,
-        tDict,
-        uDict
-    ]
-
-    nstuList = nstuClassify(nstuClassDictList)
+    paNSTUList = paNSTUClassify(groupClassList)
 
     separateLevelGroupFinishList = []
     for dataList in groupClassList:
         separateLevelGroupFinishList.append(separateLevel(dataList))
 
-    return separateLevelGroupFinishList, nstuList
+    return separateLevelGroupFinishList, paNSTUList
 
 def separateLevel(groupClassList: list) -> list:
     separateFinishList = []
@@ -160,16 +139,31 @@ def separateLevel(groupClassList: list) -> list:
     separateFinishList = [["樓層", "料位號", "使用數量", "幾組", "藥品名稱"]] + separateFinishList
     return separateFinishList
 
-def nstuClassify(nstuClassDictList: list) -> list:
+def paNSTUClassify(nstuClassList: list) -> list:
+    nClass = nstuClassList[2]
+    sClass = nstuClassList[3]
+    tClass = nstuClassList[4]
+    uClass = nstuClassList[5]
+    nstuClassList = [nClass, sClass, tClass, uClass]
     nstuList = [[], [], [], []]
-    for index, dataDict in enumerate(nstuClassDictList):
-        for k, val in dataDict.items():
-            tmp = nstuList[index]
-            k = k.split(",")
-            nstuList[index] = tmp + [[k[0], k[1], val, k[2]]]
 
-        nstuList[index].sort(key= lambda s: s[0])
-        nstuList[index] = [["料位號", "使用數量", "幾組", "藥品名稱"]] + nstuList[index]
+    for index, dataList in enumerate(nstuClassList):
+        tmpCntDict = {}
+        for data in dataList:
+            if data[0][0] == "L":
+                tmpCntDict["{},{}".format(data[1], data[4])] = \
+                    tmpCntDict.get("{},{}".format(data[1], data[4]), 0) + (int(data[2]) * data[3])
+
+        tmpItemsList = []
+        for itemList in tmpCntDict.items():
+            tmp = itemList[0].split(",") + [itemList[1]]
+            swapIndex = tmp[2]
+            tmp[2] = tmp[1]
+            tmp[1] = swapIndex
+            tmpItemsList.append(tmp)
+
+        tmpItemsList.sort(key= lambda s: s[0])
+        nstuList[index] = [["料位號", "總用量", "藥品名稱"]] + tmpItemsList
 
     return nstuList
 
@@ -180,7 +174,7 @@ def delete_gsheet(sheet_id, gsheet_name_id):
     creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     # The ID and range of a sample spreadsheet.
     # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
-    SAMPLE_SPREADSHEET_ID = os.getenv('drug_cnt_id')
+    SAMPLE_SPREADSHEET_ID = gsheet_name_id
     service = build('sheets', 'v4', credentials=creds)
 
     # Call the Sheets API
@@ -198,9 +192,9 @@ def delete_gsheet(sheet_id, gsheet_name_id):
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
 
 if __name__ == "__main__":
-    # version 1.1.0
+    # version 1.2.0
     load_dotenv()
-    recordDate = "20230220"
+    recordDate = "20230221"
     separateLevelGroupFinishList, nstuList = drugCntOutput("Batchdata{}.csv".format(recordDate))
 
     for cnt in range(len(separateLevelGroupFinishList)):
@@ -211,6 +205,6 @@ if __name__ == "__main__":
 
     # for cnt in range(6):
     #     delete_gsheet("{}".format(recordDate) + "0{}".format(cnt + 1), os.getenv('drug_cnt_id'))
-
+    #
     # for cnt in range(4):
     #     delete_gsheet("{}".format(recordDate) + "1{}".format(cnt + 1), os.getenv('drug_cnt_id'))
