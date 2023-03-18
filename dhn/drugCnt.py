@@ -47,28 +47,30 @@ def drugCntOutput(fileName: str) -> list:
             data = data.strip().split(",")
             resource.append(data)
 
-    dataFinish = dataClean(resource)
+    codeNameDict = codeNameClean(resource)
+
+    dataFinish = dataClean(resource, codeNameDict)
     separateLevelGroupFinishList, nstuList = classifyGroup(dataFinish)
 
     return separateLevelGroupFinishList, nstuList
 
-def dataClean(resource: list) -> list:
+def dataClean(resource: list, codeNameDict: dict) -> list:
     dataFinish = []
     valDict = {}
     dataDict = {}
     for content in resource[1:]:
         if "L02A" in content[2] or "L02E" in content[2]:
             level = content[2][:6]
-            valDict["{},{},{},{}".format(level, content[3], content[6], content[5])] = \
-                valDict.get("{},{},{},{}".format(level, content[3], content[6], content[5]), 0) + 1
+            valDict["{},{},{}".format(level, content[3], content[6])] = \
+                valDict.get("{},{},{}".format(level, content[3], content[6]), 0) + 1
         else:
             level = content[2][:4]
-            valDict["{},{},{},{}".format(level, content[3], content[6], content[5])] = \
-                valDict.get("{},{},{},{}".format(level, content[3], content[6], content[5]), 0) + 1
+            valDict["{},{},{}".format(level, content[3], content[6])] = \
+                valDict.get("{},{},{}".format(level, content[3], content[6]), 0) + 1
 
     for k, v in valDict.items():
         k = k.split(",")
-        dataDict[k[0]] = dataDict.get(k[0], []) + [[k[1], k[2], v, k[3]]]
+        dataDict[k[0]] = dataDict.get(k[0], []) + [[k[1], k[2], v, codeNameDict[k[1]]]]
 
     for k, v in dataDict.items():
         tmp = []
@@ -167,6 +169,13 @@ def paNSTUClassify(nstuClassList: list) -> list:
 
     return nstuList
 
+def codeNameClean(resource: list) -> dict:
+    codeNameDict = {}
+    for content in resource[1:]:
+        if content[3] not in codeNameDict.keys():
+            codeNameDict[content[3]] = content[5]
+    return codeNameDict
+
 def delete_gsheet(sheet_id, gsheet_name_id):
     # If modifying these scopes, delete the file token.json.
     SERVICE_ACCOUNT_FILE = './{}'.format(os.getenv('google_sheet_api_key'))
@@ -191,10 +200,9 @@ def delete_gsheet(sheet_id, gsheet_name_id):
     # delete sheet exe
     sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
 
-if __name__ == "__main__":
-    # version 1.2.0
-    load_dotenv()
-    recordDate = "20230221"
+    pass
+
+def updateData(recordDate: str):
     separateLevelGroupFinishList, nstuList = drugCntOutput("Batchdata{}.csv".format(recordDate))
 
     for cnt in range(len(separateLevelGroupFinishList)):
@@ -202,9 +210,23 @@ if __name__ == "__main__":
 
     for cnt in range(len(nstuList)):
         drugCntUpdateToGsheet("{}".format(recordDate) + "1{}".format(cnt + 1), nstuList[cnt])
+    pass
 
-    # for cnt in range(6):
-    #     delete_gsheet("{}".format(recordDate) + "0{}".format(cnt + 1), os.getenv('drug_cnt_id'))
-    #
-    # for cnt in range(4):
-    #     delete_gsheet("{}".format(recordDate) + "1{}".format(cnt + 1), os.getenv('drug_cnt_id'))
+def deletePostdata(recordDate: str):
+    for cnt in range(6):
+        delete_gsheet("{}".format(recordDate) + "0{}".format(cnt + 1), os.getenv('drug_cnt_id'))
+
+    for cnt in range(4):
+        delete_gsheet("{}".format(recordDate) + "1{}".format(cnt + 1), os.getenv('drug_cnt_id'))
+    pass
+
+if __name__ == "__main__":
+    # version 1.2.1
+    load_dotenv()
+    recordDate = "20230317"
+
+    exeCode = 0
+    if exeCode == 0:
+        updateData(recordDate)
+    elif exeCode == 1:
+        deletePostdata(recordDate)
