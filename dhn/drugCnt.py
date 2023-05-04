@@ -50,9 +50,9 @@ def drugCntOutput(fileName: str) -> list:
     codeNameDict = codeNameClean(resource)
 
     dataFinish = dataClean(resource, codeNameDict)
-    separateLevelGroupFinishList, nstuList = classifyGroup(dataFinish)
+    separateLevelGroupFinishList, nstuList, ppOclassCntList = classifyGroup(dataFinish, codeNameDict)
 
-    return separateLevelGroupFinishList, nstuList
+    return separateLevelGroupFinishList, nstuList, ppOclassCntList
 
 def dataClean(resource: list, codeNameDict: dict) -> list:
     dataFinish = []
@@ -83,7 +83,7 @@ def dataClean(resource: list, codeNameDict: dict) -> list:
 
     return dataFinish
 
-def classifyGroup(dataFinish: list) -> list:
+def classifyGroup(dataFinish: list, codeNameDict: dict) -> list:
     nClass = []
     oClass = []
     pClass = []
@@ -119,12 +119,13 @@ def classifyGroup(dataFinish: list) -> list:
     ]
 
     paNSTUList = paNSTUClassify(groupClassList)
+    ppOclassCntList = ppOclassParser(oClass, codeNameDict)
 
     separateLevelGroupFinishList = []
     for dataList in groupClassList:
         separateLevelGroupFinishList.append(separateLevel(dataList))
 
-    return separateLevelGroupFinishList, paNSTUList
+    return separateLevelGroupFinishList, paNSTUList, ppOclassCntList
 
 def separateLevel(groupClassList: list) -> list:
     separateFinishList = []
@@ -176,6 +177,37 @@ def codeNameClean(resource: list) -> dict:
             codeNameDict[content[3]] = content[5]
     return codeNameDict
 
+def ppOclassParser(oClass: [list], codeNameDict: dict):
+    # pp交車口服藥數量統計
+    ppTotalLevelDict = {}
+    for oList in oClass:
+        # oList[0][0] is level num.
+        if oList[0][0] == "P" and (oList[0][0:4] not in ppTotalLevelDict.keys()):
+            ppTotalLevelDict[oList[0][0:4]] = {}
+
+        elif oList[0][0] == "P":
+            # 料位號不存在key值的話
+            if oList[1] not in ppTotalLevelDict[oList[0][0:4]].keys():
+                ppTotalLevelDict[oList[0][0:4]][oList[1]] = \
+                    ppTotalLevelDict[oList[0][0:4]].get(oList[1], 0) + (int(oList[2]) * oList[3])
+            else:
+                ppTotalLevelDict[oList[0][0:4]][oList[1]] = \
+                    ppTotalLevelDict[oList[0][0:4]].get(oList[1]) + (int(oList[2]) * oList[3])
+
+    tmpOclassCntList = [["樓層", "料位號", "總用量", "藥品名稱"]]
+    for levelNum, data in ppTotalLevelDict.items():
+        tmpItemsList = []
+        for drugCode, cnt in data.items():
+            tmpItemsList.append([levelNum, drugCode, cnt, codeNameDict[drugCode]])
+
+        tmpItemsList.sort(key=lambda s: s[2], reverse=-1)
+        tmpOclassCntList = tmpOclassCntList + tmpItemsList
+        tmpOclassCntList.append([])
+        tmpOclassCntList.append([])
+
+    ppOclassCntList = [tmpOclassCntList]
+    return ppOclassCntList
+
 def delete_gsheet(sheet_id, gsheet_name_id):
     # If modifying these scopes, delete the file token.json.
     SERVICE_ACCOUNT_FILE = './{}'.format(os.getenv('google_sheet_api_key'))
@@ -203,13 +235,17 @@ def delete_gsheet(sheet_id, gsheet_name_id):
     pass
 
 def updateData(recordDate: str):
-    separateLevelGroupFinishList, nstuList = drugCntOutput("Batchdata{}.csv".format(recordDate))
+    separateLevelGroupFinishList, nstuList, ppOclassCntList = drugCntOutput("Batchdata{}.csv".format(recordDate))
 
     for cnt in range(len(separateLevelGroupFinishList)):
         drugCntUpdateToGsheet("{}".format(recordDate) + "0{}".format(cnt + 1), separateLevelGroupFinishList[cnt])
 
     for cnt in range(len(nstuList)):
         drugCntUpdateToGsheet("{}".format(recordDate) + "1{}".format(cnt + 1), nstuList[cnt])
+
+    for cnt in range(len(ppOclassCntList)):
+        drugCntUpdateToGsheet("{}".format(recordDate) + "2{}".format(cnt + 1), ppOclassCntList[cnt])
+
     pass
 
 def deletePostdata(recordDate: str):
@@ -218,12 +254,16 @@ def deletePostdata(recordDate: str):
 
     for cnt in range(4):
         delete_gsheet("{}".format(recordDate) + "1{}".format(cnt + 1), os.getenv('drug_cnt_id'))
+
+    for cnt in range(1):
+        delete_gsheet("{}".format(recordDate) + "2{}".format(cnt + 1), os.getenv('drug_cnt_id'))
+
     pass
 
 if __name__ == "__main__":
-    # version 1.2.1
+    # version 1.2.2
     load_dotenv()
-    recordDate = "20230317"
+    recordDate = "20230503"
 
     exeCode = 0
     if exeCode == 0:
