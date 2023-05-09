@@ -177,9 +177,10 @@ def codeNameClean(resource: list) -> dict:
             codeNameDict[content[3]] = content[5]
     return codeNameDict
 
-def ppOclassParser(oClass: [list], codeNameDict: dict):
+def ppOclassParser(oClass: [list], codeNameDict: dict) -> list:
     # pp交車口服藥數量統計
     ppTotalLevelDict = {}
+
     for oList in oClass:
         # oList[0][0] is level num.
         if oList[0][0] == "P" and (oList[0][0:4] not in ppTotalLevelDict.keys()):
@@ -194,19 +195,48 @@ def ppOclassParser(oClass: [list], codeNameDict: dict):
                 ppTotalLevelDict[oList[0][0:4]][oList[1]] = \
                     ppTotalLevelDict[oList[0][0:4]].get(oList[1]) + (int(oList[2]) * oList[3])
 
-    tmpOclassCntList = [["樓層", "料位號", "總用量", "藥品名稱"]]
+    drugCodeAndPPLocationDict = drugFileClean("D:/PyCharmProjection/allprojection/cgmh/data/Adgn.txt",
+                                              "D:/PyCharmProjection/allprojection/cgmh/data/pp_location.txt")
+
+    tmpOclassCntList = [["樓層", "料位號", "總用量", "定位", "藥品名稱"]]
     for levelNum, data in ppTotalLevelDict.items():
         tmpItemsList = []
         for drugCode, cnt in data.items():
-            tmpItemsList.append([levelNum, drugCode, cnt, codeNameDict[drugCode]])
+            tmpItemsList.append([levelNum, drugCode, cnt, drugCodeAndPPLocationDict[drugCode], codeNameDict[drugCode]])
 
-        tmpItemsList.sort(key=lambda s: s[2], reverse=-1)
+        tmpItemsList.sort(key=lambda s: s[3])
         tmpOclassCntList = tmpOclassCntList + tmpItemsList
         tmpOclassCntList.append([])
         tmpOclassCntList.append([])
 
     ppOclassCntList = [tmpOclassCntList]
     return ppOclassCntList
+
+def locationFileClean(filePath: str) -> dict:
+    # 得知藥品在庫台定位用。
+    with open(filePath, "r", encoding="big5")as f:
+        tmp = f.readlines()
+    for n, content in enumerate(tmp):
+        tmp[n] = content.split("\t")
+    result = {}
+    for content in tmp[1:]:
+        result[content[0]] = content[-2]
+    return result
+
+def drugFileClean(drugFilePath: str, LocationFilePath: str) -> dict:
+    # 將pp的「材編:位置」轉成「料位號：位置」。
+    with open(drugFilePath, "r", encoding="big5-hkscs")as f:
+        drugFile = f.readlines()
+
+    PPDrugLocationDict = locationFileClean(LocationFilePath)
+
+    drugCodeAndPPLocationDict = {}
+    # content[12]為料位號，content[0]為材編。
+    for content in drugFile:
+        content = content.split(";")
+        drugCodeAndPPLocationDict[content[12]] = PPDrugLocationDict.get(content[0])
+
+    return drugCodeAndPPLocationDict
 
 def delete_gsheet(sheet_id, gsheet_name_id):
     # If modifying these scopes, delete the file token.json.
@@ -261,7 +291,7 @@ def deletePostdata(recordDate: str):
     pass
 
 if __name__ == "__main__":
-    # version 1.2.2
+    # version 1.2.3
     load_dotenv()
     recordDate = "20230503"
 
