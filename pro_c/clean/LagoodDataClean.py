@@ -47,7 +47,7 @@ def defaultMain(fileNameList: list):
     columnList = ["名字"]
     allDataList = []
     for n in range(len(fileNameList)):
-        data = dataClean(fileLoad("./res/{}.json".format(n + 1)))
+        data = dataClean(fileLoad("./res/{}".format(fileNameList[n])))
         allDataList.append(data)
         setDefaultColumn(columnList, data)
     exportExcel(columnList, allDataList)
@@ -61,7 +61,7 @@ def customerMain(fileNameList: list):
 
     allDataList = []
     for n in range(len(fileNameList)):
-        data = dataClean(fileLoad("./res/{}.json".format(n + 1)))
+        data = dataClean(fileLoad("./res/{}".format(fileNameList[n])))
         allDataList.append(data)
 
     exportExcel(columnList, allDataList)
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     except Exception:
         print("請確認res資料夾內，是否有需要轉檔的檔案，以及檔名是否正確。")
 
-    print("Version 1.0.0")
+    print("Version 1.0.1")
     print("不需要自訂欄位及順序，請輸入0。")
     print("自訂欄位及順序，請按enter直接執行。")
     exeCode = input("請輸入：").strip()
