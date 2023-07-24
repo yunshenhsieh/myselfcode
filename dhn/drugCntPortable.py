@@ -1,45 +1,13 @@
-import json
-from googleapiclient.discovery import build
-from google.oauth2 import service_account
+import openpyxl
 
-def drugCntUpdateToGsheet(sheet_name: int, data_finish: list, drug_cnt_id: str, google_sheet_api_key: dict):
-    # If modifying these scopes, delete the file token.json.
-    SERVICE_ACCOUNT_FILE = google_sheet_api_key
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    # The ID and range of a sample spreadsheet.
-    # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
+def drugCntToExcel(sheet_name: int, data_finish: list, wb: object):
+    ws = wb.create_sheet(sheet_name)
+    for data_list in data_finish:
+        ws.append(data_list)
+    pass
 
-    SAMPLE_SPREADSHEET_ID = drug_cnt_id
-    service = build('sheets', 'v4', credentials=creds)
-
-    # Call the Sheets API
-    sheet = service.spreadsheets()
-
-
-    # 工作表新分頁的設定
-    new_sheet_name = {
-        'requests': [{
-            'addSheet': {
-                'properties': {
-                    'sheetId': sheet_name,
-                    'title': str(sheet_name),
-                    'index': 0,
-                    'gridProperties': {'frozen_row_count': 1}
-                }
-            }
-        }]
-    }
-    # 建立工作表新分頁
-    sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
-
-    # 寫入資料到google sheet
-    SAMPLE_RANGE_NAME = "{}!A{}".format(sheet_name, 1)
-    sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
-                          valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
-
-def drugCntOutput(filePath: str) -> list:
-    with open("{}".format(filePath), "r", encoding="big5")as f:
+def drugCntOutput(fileName: str) -> list:
+    with open("./{}".format(fileName), "r", encoding="big5")as f:
         tmp = f.readlines()
         print(len(tmp))
         resource = []
@@ -47,28 +15,30 @@ def drugCntOutput(filePath: str) -> list:
             data = data.strip().split(",")
             resource.append(data)
 
-    dataFinish = dataClean(resource)
-    separateLevelGroupFinishList, nstuList = classifyGroup(dataFinish)
+    codeNameDict = codeNameClean(resource)
 
-    return separateLevelGroupFinishList, nstuList
+    dataFinish = dataClean(resource, codeNameDict)
+    separateLevelGroupFinishList, nstuList, ppOclassCntList = classifyGroup(dataFinish, codeNameDict)
 
-def dataClean(resource: list) -> list:
+    return separateLevelGroupFinishList, nstuList, ppOclassCntList
+
+def dataClean(resource: list, codeNameDict: dict) -> list:
     dataFinish = []
     valDict = {}
     dataDict = {}
     for content in resource[1:]:
         if "L02A" in content[2] or "L02E" in content[2]:
             level = content[2][:6]
-            valDict["{},{},{},{}".format(level, content[3], content[6], content[5])] = \
-                valDict.get("{},{},{},{}".format(level, content[3], content[6], content[5]), 0) + 1
+            valDict["{},{},{}".format(level, content[3], content[6])] = \
+                valDict.get("{},{},{}".format(level, content[3], content[6]), 0) + 1
         else:
             level = content[2][:4]
-            valDict["{},{},{},{}".format(level, content[3], content[6], content[5])] = \
-                valDict.get("{},{},{},{}".format(level, content[3], content[6], content[5]), 0) + 1
+            valDict["{},{},{}".format(level, content[3], content[6])] = \
+                valDict.get("{},{},{}".format(level, content[3], content[6]), 0) + 1
 
     for k, v in valDict.items():
         k = k.split(",")
-        dataDict[k[0]] = dataDict.get(k[0], []) + [[k[1], k[2], v, k[3]]]
+        dataDict[k[0]] = dataDict.get(k[0], []) + [[k[1], k[2], v, codeNameDict[k[1]]]]
 
     for k, v in dataDict.items():
         tmp = []
@@ -81,7 +51,7 @@ def dataClean(resource: list) -> list:
 
     return dataFinish
 
-def classifyGroup(dataFinish: list) -> list:
+def classifyGroup(dataFinish: list, codeNameDict: dict) -> list:
     nClass = []
     oClass = []
     pClass = []
@@ -117,12 +87,13 @@ def classifyGroup(dataFinish: list) -> list:
     ]
 
     paNSTUList = paNSTUClassify(groupClassList)
+    ppOclassCntList = ppOclassParser(oClass, codeNameDict)
 
     separateLevelGroupFinishList = []
     for dataList in groupClassList:
         separateLevelGroupFinishList.append(separateLevel(dataList))
 
-    return separateLevelGroupFinishList, paNSTUList
+    return separateLevelGroupFinishList, paNSTUList, ppOclassCntList
 
 def separateLevel(groupClassList: list) -> list:
     separateFinishList = []
@@ -167,55 +138,122 @@ def paNSTUClassify(nstuClassList: list) -> list:
 
     return nstuList
 
-def delete_gsheet(sheet_id: str, gsheet_name_id: str, google_sheet_api_key: dict):
-    # If modifying these scopes, delete the file token.json.
-    SERVICE_ACCOUNT_FILE = google_sheet_api_key
-    SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-    creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
-    # The ID and range of a sample spreadsheet.
-    # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
-    SAMPLE_SPREADSHEET_ID = gsheet_name_id
-    service = build('sheets', 'v4', credentials=creds)
+def codeNameClean(resource: list) -> dict:
+    codeNameDict = {}
+    for content in resource[1:]:
+        if content[3] not in codeNameDict.keys():
+            codeNameDict[content[3]] = content[5]
+    return codeNameDict
 
-    # Call the Sheets API
-    sheet = service.spreadsheets()
+def ppOclassParser(oClass: [list], codeNameDict: dict) -> list:
+    # pp交車口服藥數量統計
+    ppTotalLevelDict = {}
 
-    # delete sheet json
-    new_sheet_name = {
-        'requests': [{
-            'deleteSheet': {
-                'sheetId': sheet_id
-            }
-        }]
-    }
-    # delete sheet exe
-    sheet.batchUpdate(spreadsheetId=SAMPLE_SPREADSHEET_ID, body=new_sheet_name).execute()
+    for oList in oClass:
+        # oList[0][0] is level num.
+        if oList[0][0] == "P" and (oList[0][0:4] not in ppTotalLevelDict.keys()):
+            ppTotalLevelDict[oList[0][0:4]] = {}
+
+        elif oList[0][0] == "P":
+            # 料位號不存在key值的話
+            if oList[1] not in ppTotalLevelDict[oList[0][0:4]].keys():
+                ppTotalLevelDict[oList[0][0:4]][oList[1]] = \
+                    ppTotalLevelDict[oList[0][0:4]].get(oList[1], 0) + (int(oList[2]) * oList[3])
+            else:
+                ppTotalLevelDict[oList[0][0:4]][oList[1]] = \
+                    ppTotalLevelDict[oList[0][0:4]].get(oList[1]) + (int(oList[2]) * oList[3])
+
+    drugCodeAndPPLocationDict = drugFileClean("./Adgn.txt",
+                                              "./pp_location.txt")
+
+    tmpOclassCntList = [["樓層", "料位號", "總用量", "定位", "藥品名稱"]]
+    for levelNum, data in ppTotalLevelDict.items():
+        tmpItemsList = []
+        for drugCode, cnt in data.items():
+            tmpItemsList.append([levelNum, drugCode, cnt, drugCodeAndPPLocationDict[drugCode], codeNameDict[drugCode]])
+
+        tmpItemsList.sort(key=lambda s: s[3])
+        tmpOclassCntList = tmpOclassCntList + tmpItemsList
+        tmpOclassCntList.append([])
+        tmpOclassCntList.append([])
+
+    ppOclassCntList = [tmpOclassCntList]
+    return ppOclassCntList
+
+def locationFileClean(filePath: str) -> dict:
+    # 得知藥品在庫台定位用。
+    with open(filePath, "r", encoding="big5")as f:
+        tmp = f.readlines()
+    for n, content in enumerate(tmp):
+        tmp[n] = content.split("\t")
+    result = {}
+    for content in tmp[1:]:
+        result[content[0]] = content[-2]
+    return result
+
+def drugFileClean(drugFilePath: str, LocationFilePath: str) -> dict:
+    # 將pp的「材編:位置」轉成「料位號：位置」。
+    with open(drugFilePath, "r", encoding="big5-hkscs")as f:
+        drugFile = f.readlines()
+
+    PPDrugLocationDict = locationFileClean(LocationFilePath)
+
+    drugCodeAndPPLocationDict = {}
+    # content[12]為料位號，content[0]為材編。
+    for content in drugFile:
+        content = content.split(";")
+        drugCodeAndPPLocationDict[content[12]] = PPDrugLocationDict.get(content[0])
+
+    return drugCodeAndPPLocationDict
+
+def ppUseGroup(separateLevelGroupFinishList: list) -> list:
+    header = ["料位號", "使用數量", "幾組"]
+    Pq_N_SvyGruopList = [separateLevelGroupFinishList[1][1:],
+                         separateLevelGroupFinishList[2][1:],
+                         separateLevelGroupFinishList[3][1:]]
+
+    Pq_N_SvyGruopDict = {}
+    for data_list in Pq_N_SvyGruopList:
+        for data in data_list:
+            if len(data) != 0 and data[0][0] == "P":
+                if (data[1], data[2]) not in Pq_N_SvyGruopDict.keys():
+                    Pq_N_SvyGruopDict[(data[1], data[2])] = data[3]
+                else:
+                    Pq_N_SvyGruopDict[(data[1], data[2])] = Pq_N_SvyGruopDict.get((data[1], data[2])) + data[3]
+
+    Pq_N_SvyGruopFinalList = [header]
+    for k, v in Pq_N_SvyGruopDict.items():
+        Pq_N_SvyGruopFinalList.append([k[0], k[1], v])
+
+    Pq_N_SvyGruopFinalList = [Pq_N_SvyGruopFinalList]
+    return Pq_N_SvyGruopFinalList
+
+def updateData(recordDate: str):
+    separateLevelGroupFinishList, nstuList, ppOclassCntList = drugCntOutput("Batchdata{}.csv".format(recordDate))
+    wb = openpyxl.Workbook()
+    for cnt in range(len(separateLevelGroupFinishList)):
+        drugCntToExcel("{}".format(recordDate) + "0{}".format(cnt + 1), separateLevelGroupFinishList[cnt], wb)
+
+    for cnt in range(len(nstuList)):
+        drugCntToExcel("{}".format(recordDate) + "1{}".format(cnt + 1), nstuList[cnt], wb)
+
+    for cnt in range(len(ppOclassCntList)):
+        drugCntToExcel("{}".format(recordDate) + "2{}".format(cnt + 1), ppOclassCntList[cnt], wb)
+
+    Pq_N_SvyGruopFinalList = ppUseGroup(separateLevelGroupFinishList)
+    for cnt in range(len(Pq_N_SvyGruopFinalList)):
+        drugCntToExcel("{}".format(recordDate) + "2{}".format(cnt + 1), Pq_N_SvyGruopFinalList[cnt], wb)
+
+    wb.remove(wb["Sheet"])
+    wb.save("{}clean.xls".format(recordDate))
+    wb.save("{}clean.xlsx".format(recordDate))
+    pass
+
 
 if __name__ == "__main__":
-    # version 1.2.0
-    google_sheet_api_key = input("請輸入google_sheet_api.json路徑與檔名：")
-    print(google_sheet_api_key)
-    gsheet_name_id = input("請輸入gsheet_name_id：")
-    print(gsheet_name_id)
+    # version 1.4.0
 
-    choiceFunction = input("1：上傳至google sheet\n2：刪除google sheet\n")
-    if choiceFunction == "1":
-        filePath = input("請輸入檔案路徑與名稱：")
-        recordDate = input("請輸入檔案名稱日期：")
-        separateLevelGroupFinishList, nstuList = drugCntOutput("{}".format(filePath))
+    fileDate = input("請輸入檔案日期：")
+    updateData(fileDate)
 
-        for cnt in range(len(separateLevelGroupFinishList)):
-            drugCntUpdateToGsheet("{}".format(recordDate) + "0{}".format(cnt + 1), separateLevelGroupFinishList[cnt], gsheet_name_id, google_sheet_api_key)
-
-        for cnt in range(len(nstuList)):
-            drugCntUpdateToGsheet("{}".format(recordDate) + "1{}".format(cnt + 1), nstuList[cnt], gsheet_name_id, google_sheet_api_key)
-
-    elif choiceFunction == "2":
-        recordDate = input("請輸入刪除日期：")
-        for cnt in range(6):
-            delete_gsheet("{}".format(recordDate) + "0{}".format(cnt + 1), gsheet_name_id, google_sheet_api_key)
-
-        for cnt in range(4):
-            delete_gsheet("{}".format(recordDate) + "1{}".format(cnt + 1), gsheet_name_id, google_sheet_api_key)
-
-    print("==========執行結束==========")
+    input("==========執行結束==========")
