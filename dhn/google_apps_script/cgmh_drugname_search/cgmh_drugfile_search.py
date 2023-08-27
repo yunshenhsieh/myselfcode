@@ -52,17 +52,20 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     PKDrugLocationDict = locationFileClean(LocationFilePath[4])
 
     columnItem = drugFile[0].split(";")
-    columnItem = [columnItem[0], columnItem[1], columnItem[2], columnItem[12], columnItem[57], "PB", "PP", "PA", "MYE", "PK"]
+    columnItem = [columnItem[0], columnItem[1], columnItem[2], columnItem[12], columnItem[60], "PB", "PP", "PA", "MYE", "PK"]
     result = [columnItem]
     for content in drugFile[1:]:
         content = content.split(";")
-        if content[12]:
-            result.append([content[0], content[1], content[2], content[12], content[57],
-                           PBDrugLocationDict.get(content[0], ""),
-                           PPDrugLocationDict.get(content[0], ""),
-                           PADrugLocationDict.get(content[0], ""),
-                           MYEDrugLocationDict.get(content[0], ""),
-                           PKDrugLocationDict.get(content[0], "")])
+        if len(content) != 117:
+            continue
+        else:
+            if content[12]:
+                result.append([content[0], content[1], content[2], content[12], content[60],
+                               PBDrugLocationDict.get(content[0], ""),
+                               PPDrugLocationDict.get(content[0], ""),
+                               PADrugLocationDict.get(content[0], ""),
+                               MYEDrugLocationDict.get(content[0], ""),
+                               PKDrugLocationDict.get(content[0], "")])
     updateTime = ["更新時間",
                   "Drug檔更新日：{}".format("< Update time >"),
                   "PB定位更新日：{}".format("< Update time >"),
