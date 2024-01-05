@@ -1,2 +1,6 @@
-size|50
-error_correction|1
+size=50
+error_correction=1
+excel_path= < token >
+sheet_name=條碼標籤
+qrcode_cell=M13
+barcode_review_cell=D17
