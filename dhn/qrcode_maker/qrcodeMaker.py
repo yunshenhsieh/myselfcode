@@ -1,5 +1,6 @@
 import qrcode, os
 from qrcode import constants
+import xlwings as xw
 
 def qrcodeMaker(drugCode: str, barcodeNumber: str, qrSize: str, errorCorrection: constants):
     qr = qrcode.QRCode(
@@ -12,7 +13,8 @@ def qrcodeMaker(drugCode: str, barcodeNumber: str, qrSize: str, errorCorrection:
     img = img.resize((int(qrSize), int(qrSize)))
     img.save(".\\history\\{}_{}.png".format(drugCode, barcodeNumber))
     print("{} QRcode已存入{}\\history\\{}_{}.png".format(drugCode, os.getcwd(), drugCode, barcodeNumber))
-    pass
+    qrcodePath = os.getcwd() + ".\\history\\{}_{}.png".format(drugCode, barcodeNumber)
+    return qrcodePath
 
 def drugFileLocation(drugFilePath: str) -> list[str]:
     with open(drugFilePath, "r", encoding="big5-hkscs")as f:
@@ -43,7 +45,7 @@ def checkDrugCodeAndBarcodeNumberIndex(drugFile: list[str]) -> int:
     return drugCodeIndex, barcodeNumberIndex
 
 if __name__ == "__main__":
-    print("Version 1.0.0")
+    print("Version 1.1.0")
     print("製作：謝昀燊(Vincent Xie)")
     if os.path.isdir(".\\history"):
         pass
@@ -61,7 +63,7 @@ if __name__ == "__main__":
     else:
         input("Miss environment setting file「env」")
     with open(".\\env", "r", encoding="utf-8")as f:
-        envList = [env.split("|") for env in f.readlines()]
+        envList = [env.split("=") for env in f.readlines()]
     envSettleDict = {env[0].strip() : env[1].strip() for env in envList}
 
     errorCorrectionDict = {0 : constants.ERROR_CORRECT_L,
@@ -75,10 +77,18 @@ if __name__ == "__main__":
     drugCodeAndBarcodeNumberDict = drugCodeClean(drugFile, drugCodeIndex, barcodeNumberIndex)
 
     drugCodeAndBarcodeNumberDictKeyTuple = tuple(drugCodeAndBarcodeNumberDict.keys())
+
+    wb = xw.Book(envSettleDict["excel_path"])
+    wx = wb.sheets[envSettleDict["sheet_name"]]
+    rng = wb.sheets[envSettleDict["sheet_name"]].range(envSettleDict["qrcode_cell"])
+
     while True:
         drugCode = input("請輸入 料位號：").strip().upper()
         if drugCode not in drugCodeAndBarcodeNumberDictKeyTuple:
             print("無此 料位藥，請重新輸入。")
         else:
             barcodeNumber = drugCodeAndBarcodeNumberDict[drugCode]
-            qrcodeMaker(drugCode, barcodeNumber, envSettleDict["size"], errorCorrectionDict[int(envSettleDict["error_correction"])])
+            qrcodePath = qrcodeMaker(drugCode, barcodeNumber, envSettleDict["size"], errorCorrectionDict[int(envSettleDict["error_correction"])])
+
+            wx[envSettleDict["barcode_review_cell"]].value = barcodeNumber
+            wx.pictures.add(qrcodePath, top=rng.top, left=rng.left)
