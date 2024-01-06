@@ -1,6 +1,10 @@
-size=50
+size=47
 error_correction=1
-excel_path= < token >
+excel_path=< token >
 sheet_name=條碼標籤
+drug_code_cell=D4
+material_code_cell=F4
+barcode_cell=H14
 qrcode_cell=M13
-barcode_review_cell=D17
+print_range=H6:M15
+printer_name=SATO CG408
