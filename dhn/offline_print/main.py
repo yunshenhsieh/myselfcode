@@ -1,38 +1,128 @@
+# Version 2.0.0
+import datetime
 import extract
-def templateProduce() -> str:
-    template = """
-    \n\n\n\n\n                                                                 {}
-    \n\n         {}                          {}            {}
-    \n\n\n           {}
-    \n\n\n\n\n\n\n             {}
-    \n\n              {}"""
-
-    return template
+import docx
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.shared import Cm
+import win32api
 
 def loadFile(filePath: str) -> list[str]:
     with open(filePath, "r", encoding="utf-8")as f:
         contentList = f.readlines()
     return contentList
 
-def drugBagMaker(contentList: list[str]) -> str:
-    receiveNumber = extract.extractReceiveNumber(contentList)
-    ptName = extract.extractPtName(contentList)
-    ptBirthDay = extract.extractBirthDay(contentList)
-    dipensingDay = extract.extractDate(contentList)
-    ptChartNumber = extract.extractChartNumber(contentList)
+def loadUseageWay(filePath: str) -> dict:
+    useageWayDict = {}
+    with open(filePath, "r", encoding="utf-8")as f:
+        for data in f.readlines():
+            data = data.split("=")
+            useageWayDict[data[0].strip()] = data[1].strip()
+    return useageWayDict
 
-    drugNameList, usageList = extract.extractMedisonInfo(contentList)
-    drugBag = [templateProduce().format(receiveNumber, ptName, ptBirthDay, dipensingDay, ptChartNumber, drugName, usage)
-                for drugName, usage in zip(drugNameList, usageList)]
-    return drugBag
+def loadPrint(filePath: str, printerName: str, receiveNumber: str, dipensingDay: str):
+    win32api.ShellExecute (0, "print", filePath, printerName, ".", 0)
+    print("領藥號：{}，病人：{}，列印完成。".format(receiveNumber, dipensingDay))
+    pass
+
+def msWordFormat(pageWd: float, pageHt: float, marginL: float, marginR: float, marginT: float, marginB: float) -> docx.Document():
+    msDoc = docx.Document()
+    section = msDoc.sections[0]
+    section.page_width = Cm(pageWd)
+
+    section.page_height = Cm(pageHt)
+
+    section.left_margin = Cm(marginL)
+
+    section.right_margin = Cm(marginR)
+
+    section.top_margin = Cm(marginT)
+
+    section.bottom_margin = Cm(marginB)
+
+    return msDoc
+
+def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dict, beforeOrAfterDict: dict, envSettingDict: dict):
+    msDoc = msWordFormat(float(envSettingDict["pageWd"]), float(envSettingDict["pageHt"]),
+                         float(envSettingDict["marginL"]), float(envSettingDict["marginR"]),
+                         float(envSettingDict["marginT"]), float(envSettingDict["marginB"]))
+    pharmacistName = envSettingDict["調劑藥師"]
+    printerName = envSettingDict["印表機名稱"]
+
+    receiveNumber: str = extract.extractReceiveNumber(contentList)
+    ptName: str = extract.extractPtName(contentList)
+    ptBirthDay: str = extract.extractBirthDay(contentList)
+    dipensingDay: datetime.strftime = datetime.datetime.now().strftime("%Y/%m/%d")
+    ptChartNumber: str = extract.extractChartNumber(contentList)
+    department = extract.extractDepartment(contentList)
+    doctorName = extract.extractDoctorName(contentList)
+
+    drugNameList, usageList, brandNameAndNoticeList = extract.extractMedisonInfo(contentList)
+
+    drugCount = len(drugNameList)
+
+    for index in range(drugCount):
+        headerTable = msDoc.add_table(rows=4, cols=4)
+        msDoc.add_paragraph()
+        contentTable = msDoc.add_table(rows=5, cols=3)
+        contentTable.cell(0, 1).width = Cm(8)
+
+        headerTable.rows[0].cells[3].text = receiveNumber + " 林口"
+        headerTable.rows[1].cells[0].text = ptName
+        headerTable.rows[1].cells[2].text = ptBirthDay
+        headerTable.rows[2].cells[0].text = ptChartNumber
+        headerTable.rows[2].cells[3].text = dipensingDay
+        headerTable.rows[3].cells[0].text = department
+        headerTable.rows[3].cells[1].text = doctorName
+        headerTable.rows[3].cells[3].text = pharmacistName
+
+        for row in headerTable.rows:
+            for cell in row.cells:
+                cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+        headerTable.rows[1].cells[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+
+
+        contentTable.rows[0].cells[0].text = chr(12304) + "藥名" + chr(12305)
+        contentTable.rows[0].cells[1].text = drugNameList[index]
+        contentTable.rows[0].cells[2].text = "{} PC".format(usageList[index][-2].replace("PC", ""))
+        contentTable.rows[1].cells[0].text = chr(12304) + "商品名" + chr(12305)
+        contentTable.rows[1].cells[1].text = brandNameAndNoticeList[index][0]
+        contentTable.rows[2].cells[0].text = chr(12304) + "使用方法" + chr(12305)
+        contentTable.rows[2].cells[1].text = "{}".format(useageWayDict.get(usageList[index][2], "None"))
+        contentTable.rows[2].cells[2].text = "{} - {}".format(index + 1, drugCount)
+        contentTable.rows[3].cells[1].text = "每次{}，{}，{}".format(
+                                    usageList[index][0],
+                                    frequencyDict.get(usageList[index][1], "None"),
+                                    beforeOrAfterDict.get(usageList[index][3], ""))
+        contentTable.rows[4].cells[0].text = chr(12304) + "備註" + chr(12305)
+        contentTable.rows[4].cells[1].text = brandNameAndNoticeList[index][1]
+
+        for row in contentTable.rows:
+            row.cells[-1].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+
+        if index != drugCount - 1:
+            msDoc.add_page_break()
+
+    msDoc.save("./history/{}_{}.docx".format(receiveNumber, datetime.datetime.now().strftime("%Y%m%d")))
+    print("領藥號：{}，病人：{}，已完成。".format(receiveNumber, ptName))
+    # loadPrint("./history/{}_{}.docx", printerName, receiveNumber, dipensingDay)
+    pass
+
+def envSet(filePath: str) -> dict:
+    with open(filePath, "r", encoding="utf-8")as f:
+        envSettingDict = {}
+        for setting in f.readlines():
+            setting = setting.split("=")
+            envSettingDict[setting[0].strip()] = setting[1].strip()
+
+    return envSettingDict
 
 if __name__ == "__main__":
-    # Version 0.0.1
-    contentList = loadFile(< filePath >)
-    drugBageInfo = ""
-    for data in drugBagMaker(contentList):
-        drugBageInfo += data
-    with open(< fileName >, "w", encoding="utf-8")as w:
-        w.write(drugBageInfo)
-        w.close()
+    useageWayDict = loadUseageWay("./使用方式.txt")
+    frequencyDict = loadUseageWay("./頻次.txt")
+    envSettingDict = envSet("./env")
+    beforeOrAfterDict = {"PC": "飯後", "AC": "飯前"}
+    while True:
+        filePath = input("請輸入文字檔路徑：")
+        contentList = loadFile(filePath)
+        drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict)
     pass
