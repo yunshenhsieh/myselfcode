@@ -1,23 +1,29 @@
-# Version 0.0.1
-def extractDate(contentList: list[str]) -> str:
-    visitDate = contentList[1][5:13]
-    return visitDate
-
+# Version 1.0.0
 def extractReceiveNumber(contentList: list[str]) -> str:
-    receiveNumber = contentList[3].split("：")[-1][:5]
+    receiveNumber = contentList[3].split("：")[-1][:5].strip()
     return receiveNumber
 
 def extractChartNumber(contentList: list[str]) -> str:
-    chartNumber = "".join([n for n in contentList[4][:9] if ord(n) != 32])
+    chartNumber = "".join([n for n in contentList[4][:9] if ord(n) != 32]).strip()
     return chartNumber
 
 def extractPtName(contentList: list[str]) -> str:
-    ptName = "".join([n for n in contentList[5][:9] if ord(n) != 32])
+    ptName = contentList[5][:20].strip()
+    if "出" in ptName:
+        ptName = ptName[:ptName.index("出")].strip()
     return ptName
 
 def extractBirthDay(contentList: list[str]) -> str:
-    birthDay = "".join([date for date in contentList[5].split("年月日:")[-1][:11] if ord(date) != 32])
+    birthDay = "".join([date for date in contentList[5].split("年月日:")[-1][:11] if ord(date) != 32]).strip()
     return birthDay
+
+def extractDepartment(contentList: list[str]) -> str:
+    department = contentList[5][-10:-6].strip()
+    return department
+
+def extractDoctorName(contentList: list[str]) -> str:
+    doctorName = contentList[5].split("醫師")[-2][-4:].strip()
+    return doctorName
 
 def checkBeginAndEnd(contentList: list[str]) -> int:
     numBegin , numEnd= 0, 0
@@ -28,14 +34,38 @@ def checkBeginAndEnd(contentList: list[str]) -> int:
             numEnd = listNum
     return numBegin, numEnd
 
-def extractMedisonInfo(contentList: list[str]) -> str:
+def extractUsageInfo(content: str) -> list:
+    usageInfo = content.split("-")[-1].split(" ")
+    usageInfo = [info.strip() for info in usageInfo if info != ""]
+    return usageInfo
+
+def extractMedisonInfo(contentList: list[str]) -> list:
     numBegin , numEnd= checkBeginAndEnd(contentList)
-    drugNameList ,usageList = [], []
+    drugNameList ,usageList, brandNameAndNoticeList = [], [], []
+    nextPageNum = numBegin
     for content in contentList[numBegin:numEnd]:
-        if " ." in content:
-            drugName = content.split("---")[0]
+        nextPageNum = nextPageNum + 1
+        if " ." in content and "---" in content:
+            drugName = content.split("---")[0][6:].strip()
             drugNameList.append(drugName)
-        if "---" in content:
-            usageInfo = content.split("-")[-1]
+
+            usageInfo = extractUsageInfo(content)
             usageList.append(usageInfo)
-    return drugNameList, usageList
+
+        elif " ." in content and len(content) < 90:
+            drugName = content.split("---")[0][6:].strip()
+            drugName = drugName + contentList[nextPageNum + 1].split("---")[0].strip()
+            drugNameList.append(drugName)
+
+        elif "---" in content:
+            usageInfo = extractUsageInfo(content)
+            usageList.append(usageInfo)
+
+        if "商品:" in content:
+            brandName = content.split("商品:")[-1].strip()
+            notice = ""
+            if "備註:" in contentList[nextPageNum]:
+                notice = contentList[nextPageNum].split("備註:")[-1].strip()
+            brandNameAndNoticeList.append((brandName, notice))
+
+    return drugNameList, usageList, brandNameAndNoticeList
