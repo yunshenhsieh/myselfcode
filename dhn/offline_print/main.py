@@ -1,8 +1,9 @@
-# Version 2.0.0
+# Version 2.1.1
 import datetime
 import extract
 import docx
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Cm
 import win32api
 
@@ -58,15 +59,21 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
 
     drugNameList, usageList, brandNameAndNoticeList = extract.extractMedisonInfo(contentList)
 
+    paragraph_format = msDoc.styles['Normal'].paragraph_format
+    paragraph_format.space_after = 1
+
     drugCount = len(drugNameList)
 
     for index in range(drugCount):
         headerTable = msDoc.add_table(rows=4, cols=4)
         msDoc.add_paragraph()
+        headerTable.alignment = WD_TABLE_ALIGNMENT.RIGHT
         contentTable = msDoc.add_table(rows=5, cols=3)
         contentTable.cell(0, 1).width = Cm(8)
 
+
         headerTable.rows[0].cells[3].text = receiveNumber + " 林口"
+        headerTable.rows[0].cells[3].paragraphs[0].runs[0].font.bold = True
         headerTable.rows[1].cells[0].text = ptName
         headerTable.rows[1].cells[2].text = ptBirthDay
         headerTable.rows[2].cells[0].text = ptChartNumber
@@ -75,10 +82,12 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
         headerTable.rows[3].cells[1].text = doctorName
         headerTable.rows[3].cells[3].text = pharmacistName
 
-        for row in headerTable.rows:
-            for cell in row.cells:
-                cell.paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
-        headerTable.rows[1].cells[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        headerTable.rows[0].cells[3].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        headerTable.rows[1].cells[2].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+        headerTable.rows[2].cells[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        headerTable.rows[2].cells[3].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+        headerTable.rows[3].cells[1].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+        headerTable.rows[3].cells[3].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
 
 
         contentTable.rows[0].cells[0].text = chr(12304) + "藥名" + chr(12305)
@@ -121,6 +130,8 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay("./頻次.txt")
     envSettingDict = envSet("./env")
     beforeOrAfterDict = {"PC": "飯後", "AC": "飯前"}
+    print("製作人員：謝昀燊Vincent")
+    print("Version：2.1.1")
     while True:
         filePath = input("請輸入文字檔路徑：")
         contentList = loadFile(filePath)
