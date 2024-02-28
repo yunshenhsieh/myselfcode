@@ -1,11 +1,13 @@
-# Version 2.1.1
+# Version 2.2.0
 import datetime
+import os
+import time
 import extract
 import docx
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Cm
-import win32api
+import win32api, win32print
 
 def loadFile(filePath: str) -> list[str]:
     with open(filePath, "r", encoding="utf-8")as f:
@@ -20,9 +22,17 @@ def loadUseageWay(filePath: str) -> dict:
             useageWayDict[data[0].strip()] = data[1].strip()
     return useageWayDict
 
-def loadPrint(filePath: str, printerName: str, receiveNumber: str, dipensingDay: str):
-    win32api.ShellExecute (0, "print", filePath, printerName, ".", 0)
-    print("領藥號：{}，病人：{}，列印完成。".format(receiveNumber, dipensingDay))
+def loadPrint(filePath: str, printerName: str, receiveNumber: str, ptName: str):
+    filePath = os.getcwd() + filePath
+    win32api.ShellExecute(
+        0,
+        "print",
+        filePath,
+        "/d:{}".format(win32print.OpenPrinter(printerName)),
+        ".",
+        0
+    )
+    print("領藥號：{}，病人：{}，列印完成。".format(receiveNumber, ptName))
     pass
 
 def msWordFormat(pageWd: float, pageHt: float, marginL: float, marginR: float, marginT: float, marginB: float) -> docx.Document():
@@ -111,9 +121,9 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
         if index != drugCount - 1:
             msDoc.add_page_break()
 
-    msDoc.save("./history/{}_{}.docx".format(receiveNumber, datetime.datetime.now().strftime("%Y%m%d")))
+    msDoc.save("./history/{}_{}.docx".format(receiveNumber, dipensingDay.replace("/", "")))
     print("領藥號：{}，病人：{}，已完成。".format(receiveNumber, ptName))
-    # loadPrint("./history/{}_{}.docx", printerName, receiveNumber, dipensingDay)
+    loadPrint("/history/{}_{}.docx".format(receiveNumber, dipensingDay.replace("/", "")), printerName, receiveNumber, ptName)
     pass
 
 def envSet(filePath: str) -> dict:
@@ -131,7 +141,7 @@ if __name__ == "__main__":
     envSettingDict = envSet("./env")
     beforeOrAfterDict = {"PC": "飯後", "AC": "飯前"}
     print("製作人員：謝昀燊Vincent")
-    print("Version：2.1.1")
+    print("Version：2.2.0")
     while True:
         filePath = input("請輸入文字檔路徑：")
         contentList = loadFile(filePath)
