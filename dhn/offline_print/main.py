@@ -1,18 +1,13 @@
-# Version 2.2.0
+# Version 3.0.0
 import datetime
 import os
-import time
 import extract
 import docx
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Cm
 import win32api, win32print
-
-def loadFile(filePath: str) -> list[str]:
-    with open(filePath, "r", encoding="utf-8")as f:
-        contentList = f.readlines()
-    return contentList
+import tkinter as tk
 
 def loadUseageWay(filePath: str) -> dict:
     useageWayDict = {}
@@ -57,7 +52,6 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
                          float(envSettingDict["marginL"]), float(envSettingDict["marginR"]),
                          float(envSettingDict["marginT"]), float(envSettingDict["marginB"]))
     pharmacistName = envSettingDict["調劑藥師"]
-    printerName = envSettingDict["印表機名稱"]
 
     receiveNumber: str = extract.extractReceiveNumber(contentList)
     ptName: str = extract.extractPtName(contentList)
@@ -123,8 +117,8 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
 
     msDoc.save("./history/{}_{}.docx".format(receiveNumber, dipensingDay.replace("/", "")))
     print("領藥號：{}，病人：{}，已完成。".format(receiveNumber, ptName))
-    loadPrint("/history/{}_{}.docx".format(receiveNumber, dipensingDay.replace("/", "")), printerName, receiveNumber, ptName)
-    pass
+
+    return [receiveNumber, dipensingDay, ptName]
 
 def envSet(filePath: str) -> dict:
     with open(filePath, "r", encoding="utf-8")as f:
@@ -135,15 +129,68 @@ def envSet(filePath: str) -> dict:
 
     return envSettingDict
 
+def tkinterSet():
+    root = tk.Tk()
+    root.title('離線藥袋列印')
+    root.geometry('600x700')
+
+    text = tk.Text(root)  # 放入多行輸入框
+    text.pack()
+    resultInfoTxt_1 = tk.StringVar()
+    resultInfoTxt_2 = tk.StringVar()
+    resultInfoLabel_1 = tk.Label(root, textvariable=resultInfoTxt_1, font=('Arial', 20))
+    resultInfoLabel_2 = tk.Label(root, textvariable=resultInfoTxt_2, font=('Arial', 20))
+    resultInfoLabel_1.pack()
+    resultInfoLabel_2.pack()
+
+    def save():
+        contentList = text.get(1.0, 'end-1c').split("\n")
+        # 使用 end-1c 表示取得倒數第二個字元 ( 因為最後一個字元是換行符 )
+        info = drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict)
+        resultInfoTxt_1.set("領藥號：{}，病人：{}".format(info[0], info[2]))
+        resultInfoTxt_2.set("已存檔至history資料夾")
+        clear()
+        pass
+
+    def saveAndPrint():
+        contentList = text.get(1.0, 'end-1c').split("\n")
+        # 使用 end-1c 表示取得倒數第二個字元 ( 因為最後一個字元是換行符 )
+        info = drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict)
+        printerName = envSettingDict["印表機名稱"]
+
+        loadPrint("/history/{}_{}.docx".format(info[0], info[1].replace("/", "")), printerName,
+                  receiveNumber=info[0], ptName=info[2])
+        resultInfoTxt_1.set("領藥號：{}，病人：{}".format(info[0], info[2]))
+        resultInfoTxt_2.set("已存檔至history資料夾並列印")
+        clear()
+        pass
+
+    def clear():
+        text.delete(1.0, 'end')
+        # 執行 clear 函式時，清空內容
+        pass
+
+    btnSaveAndPrint = tk.Button(root, text='列印並存成word', font=('Arial', 30, 'bold'), command=saveAndPrint)  # 放入顯示按鈕
+    btnSaveAndPrint.pack()
+
+    btnSave = tk.Button(root, text='存成word', font=('Arial', 30, 'bold'), command=save)  # 放入清空按鈕
+    btnSave.pack()
+
+    btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
+    btnClear.pack()
+
+    verInfo = tk.Label(root, text='Ver：3.0.0\n作者：謝昀燊Vincent')
+    verInfo.pack()
+
+    root.mainloop()
+    pass
+
 if __name__ == "__main__":
     useageWayDict = loadUseageWay("./使用方式.txt")
     frequencyDict = loadUseageWay("./頻次.txt")
     envSettingDict = envSet("./env")
     beforeOrAfterDict = {"PC": "飯後", "AC": "飯前"}
-    print("製作人員：謝昀燊Vincent")
-    print("Version：2.2.0")
-    while True:
-        filePath = input("請輸入文字檔路徑：")
-        contentList = loadFile(filePath)
-        drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict)
+    print("作者：謝昀燊Vincent")
+    print("Version：3.0.0")
+    tkinterSet()
     pass
