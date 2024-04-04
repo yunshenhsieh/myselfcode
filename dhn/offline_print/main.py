@@ -1,4 +1,4 @@
-# Version 3.0.0
+# Version 3.1.0
 import datetime
 import os
 import extract
@@ -131,8 +131,8 @@ def envSet(filePath: str) -> dict:
 
 def tkinterSet():
     root = tk.Tk()
-    root.title('離線藥袋列印')
-    root.geometry('600x700')
+    root.title('急診離線藥袋列印')
+    root.geometry('{}x{}'.format(envSettingDict["視窗寬度"], envSettingDict["視窗高度"]))
 
     text = tk.Text(root)  # 放入多行輸入框
     text.pack()
@@ -179,7 +179,7 @@ def tkinterSet():
     btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
     btnClear.pack()
 
-    verInfo = tk.Label(root, text='Ver：3.0.0\n作者：謝昀燊Vincent')
+    verInfo = tk.Label(root, text='Ver：3.1.0\n作者：謝昀燊Vincent')
     verInfo.pack()
 
     root.mainloop()
@@ -191,6 +191,5 @@ if __name__ == "__main__":
     envSettingDict = envSet("./env")
     beforeOrAfterDict = {"PC": "飯後", "AC": "飯前"}
     print("作者：謝昀燊Vincent")
-    print("Version：3.0.0")
     tkinterSet()
     pass
