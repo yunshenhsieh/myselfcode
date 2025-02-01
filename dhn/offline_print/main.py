@@ -165,7 +165,7 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
         contentTable.rows[4].cells[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.DISTRIBUTE
         contentTable.rows[4].cells[1].text = drugList[index][-1]
 
-        serialNumberData = '{}     {}'.format(ptChartNumber, drugList[index][0])
+        serialNumberData = '{}      {}'.format(ptChartNumber, drugList[index][0])
         serialNumberQrCodePath = qrcodeMaker(serialNumberData, tmpStoragePath)
 
         contentTable.rows[6].cells[0].paragraphs[0].add_run().add_picture(serialNumberQrCodePath)
@@ -210,24 +210,24 @@ def tkinterSet():
     resultInfoLabel_2.pack()
 
     def save():
-        contentList = text.get(1.0, 'end-1c').split("===")
+        contentList = text.get(1.0, 'end-1c').split('開單醫師')
         # 使用 end-1c 表示取得倒數第二個字元 ( 因為最後一個字元是換行符 )
         info = drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict, drugProfileDict)
-        resultInfoTxt_1.set("領藥號：{}，病人：{}".format(info[0], info[2]))
-        resultInfoTxt_2.set("已存檔至history資料夾")
+        resultInfoTxt_1.set('領藥號：{}，病人：{}'.format(info[0], info[2]))
+        resultInfoTxt_2.set('已存檔至history資料夾')
         clear()
         pass
 
     def saveAndPrint():
-        contentList = text.get(1.0, 'end-1c').split("===")
+        contentList = text.get(1.0, 'end-1c').split('開單醫師')
         # 使用 end-1c 表示取得倒數第二個字元 ( 因為最後一個字元是換行符 )
         info = drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict, drugProfileDict)
-        printerName = envSettingDict["印表機名稱"]
+        printerName = envSettingDict['印表機名稱']
 
-        loadPrint('./history/{}_{}/{}_{}.docx'.format(info[0], info[1].replace("/", ""), info[0], info[1].replace("/", "")), printerName,
+        loadPrint('./history/{}_{}/{}_{}.docx'.format(info[0], info[1].replace('/', ''), info[0], info[1].replace('/', '')), printerName,
                   receiveNumber=info[0], ptName=info[2])
-        resultInfoTxt_1.set("領藥號：{}，病人：{}".format(info[0], info[2]))
-        resultInfoTxt_2.set("已存檔至history資料夾並列印")
+        resultInfoTxt_1.set('領藥號：{}，病人：{}'.format(info[0], info[2]))
+        resultInfoTxt_2.set('已存檔至history資料夾並列印')
         clear()
         pass
 
@@ -245,7 +245,7 @@ def tkinterSet():
     btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
     btnClear.pack()
 
-    verInfo = tk.Label(root, text='Ver：4.0.1\n作者：謝昀燊Vincent')
+    verInfo = tk.Label(root, text='Ver：4.0.3\n作者：謝昀燊Vincent')
     verInfo.pack()
 
     root.mainloop()
@@ -257,7 +257,7 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay('./頻次.txt')
     envSettingDict = envSet('./env')
     beforeOrAfterDict = {'P': '飯後', 'A': '飯前'}
-    print('版本：4.0.1')
+    print('版本：4.0.3')
     print('作者：謝昀燊Vincent')
     tkinterSet()
     pass
