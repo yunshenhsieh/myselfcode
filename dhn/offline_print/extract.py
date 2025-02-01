@@ -1,71 +1,52 @@
-# Version 1.0.0
-def extractReceiveNumber(contentList: list[str]) -> str:
-    receiveNumber = contentList[3].split("：")[-1][:5].strip()
+# Version 4.0.0
+def extractReceiveNumber(contentForHeader: list[str]) -> str:
+    receiveNumber = contentForHeader[3].split('：')[-1][:5].strip()
     return receiveNumber
 
-def extractChartNumber(contentList: list[str]) -> str:
-    chartNumber = "".join([n for n in contentList[4][:9] if ord(n) != 32]).strip()
+def extractChartNumber(contentForHeader: list[str]) -> str:
+    chartNumber = ''.join([n for n in contentForHeader[4][:9] if ord(n) != 32]).strip()
     return chartNumber
 
-def extractPtName(contentList: list[str]) -> str:
-    ptName = contentList[5][:20].strip()
-    if "出" in ptName:
-        ptName = ptName[:ptName.index("出")].strip()
+def extractPtName(contentForHeader: list[str]) -> str:
+    ptName = contentForHeader[5][:20].strip()
+    if '出' in ptName:
+        ptName = ptName[:ptName.index('出')].strip()
     return ptName
 
-def extractBirthDay(contentList: list[str]) -> str:
-    birthDay = "".join([date for date in contentList[5].split("年月日:")[-1][:11] if ord(date) != 32]).strip()
+def extractBirthDay(contentForHeader: list[str]) -> str:
+    birthDay = ''.join([date for date in contentForHeader[5].split('年月日:')[-1][:11] if ord(date) != 32]).strip()
     return birthDay
 
-def extractDepartment(contentList: list[str]) -> str:
-    department = contentList[5][-10:-6].strip()
+def extractDepartment(contentForHeader: list[str]) -> str:
+    department = '急診' + contentForHeader[5].strip().split('急診')[-1]
     return department
 
-def extractDoctorName(contentList: list[str]) -> str:
-    doctorName = contentList[5].split("醫師")[-2][-4:].strip()
+def extractDoctorName(contentForHeader: list[str]) -> str:
+    doctorName = contentForHeader[5].split('醫師')[-2][-4:].strip()
     return doctorName
 
-def checkBeginAndEnd(contentList: list[str]) -> int:
-    numBegin , numEnd= 0, 0
-    for listNum ,content in enumerate(contentList):
-        if ("藥品" and "劑量" and "首日") in content:
-            numBegin = listNum
-        elif "Total Item" in content:
-            numEnd = listNum
-    return numBegin, numEnd
+def sortSerialNumber(contentForDrugInfo: str) -> list:
+    medisonList = [medisonData.split('\t') for medisonData in contentForDrugInfo.strip().split('\n')]
+    for n, medisonData in enumerate(medisonList):
+        medisonList[n][0] = int(medisonData[0])
 
-def extractUsageInfo(content: str) -> list:
-    usageInfo = content.split("-")[-1].split(" ")
-    usageInfo = [info.strip() for info in usageInfo if info != ""]
-    return usageInfo
+    medisonList = sorted(medisonList, key=lambda x: x[0])
 
-def extractMedisonInfo(contentList: list[str]) -> list:
-    numBegin , numEnd= checkBeginAndEnd(contentList)
-    drugNameList ,usageList, brandNameAndNoticeList = [], [], []
-    nextPageNum = numBegin
-    for content in contentList[numBegin:numEnd]:
-        nextPageNum = nextPageNum + 1
-        if " ." in content and "---" in content:
-            drugName = content.split("---")[0][6:].strip()
-            drugNameList.append(drugName)
+    for n, medisonData in enumerate(medisonList):
+        medisonList[n][0] = str(medisonData[0])
 
-            usageInfo = extractUsageInfo(content)
-            usageList.append(usageInfo)
+    return medisonList
 
-        elif " ." in content and len(content) < 90:
-            drugName = content.split("---")[0][6:].strip()
-            drugName = drugName + contentList[nextPageNum + 1].split("---")[0].strip()
-            drugNameList.append(drugName)
+def extractMedisonInfo(contentForDrugInfo: str, drugProfileDict: dict) -> list:
+    # 讓藥品按序號排列，發現藥袋列印順序也是看序號。
+    medisonList = sortSerialNumber(contentForDrugInfo)
 
-        elif "---" in content:
-            usageInfo = extractUsageInfo(content)
-            usageList.append(usageInfo)
-
-        if "商品:" in content:
-            brandName = content.split("商品:")[-1].strip()
-            notice = ""
-            if "備註:" in contentList[nextPageNum]:
-                notice = contentList[nextPageNum].split("備註:")[-1].strip()
-            brandNameAndNoticeList.append((brandName, notice))
-
-    return drugNameList, usageList, brandNameAndNoticeList
+    for n, medison in enumerate(medisonList):
+        drugId = medison[17].split(' ')[0].strip()
+        drugCode = drugProfileDict.get(drugId, "000")[12]
+        medisonList[n][2] = drugId
+        medisonList[n][1] = drugCode
+        # 補足最後一行list長度，不然最後一行沒有備註的話，最後一格就會是藥品編號，列印時就會印在備註。
+        if len(medisonList[n]) < 20:
+            medisonList[n] = medisonList[n] + ([''] * (20 - len(medisonList[n])))
+    return medisonList
