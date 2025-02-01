@@ -1,4 +1,4 @@
-# Version 4.0.0
+# Version 4.0.3
 def extractReceiveNumber(contentForHeader: list[str]) -> str:
     receiveNumber = contentForHeader[3].split('：')[-1][:5].strip()
     return receiveNumber
@@ -26,7 +26,8 @@ def extractDoctorName(contentForHeader: list[str]) -> str:
     return doctorName
 
 def sortSerialNumber(contentForDrugInfo: str) -> list:
-    medisonList = [medisonData.split('\t') for medisonData in contentForDrugInfo.strip().split('\n')]
+    # list[0]是開方醫師分隔完，剩下的一些部份，所以從list[1]開始才是藥品明細。
+    medisonList = [medisonData.split('\t') for medisonData in contentForDrugInfo.strip().split('\n')[1:]]
     for n, medisonData in enumerate(medisonList):
         medisonList[n][0] = int(medisonData[0])
 
