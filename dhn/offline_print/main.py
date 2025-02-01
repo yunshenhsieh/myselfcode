@@ -70,16 +70,16 @@ def qrcodeMaker(qrcodeData: str, tmpStoragePath: str, qrSize: int = 25):
     return qrcodePath
 
 def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dict, beforeOrAfterDict: dict, envSettingDict: dict, drugProfileDict: dict):
-    msDoc = msWordFormat(float(envSettingDict["pageWd"]), float(envSettingDict["pageHt"]),
-                         float(envSettingDict["marginL"]), float(envSettingDict["marginR"]),
-                         float(envSettingDict["marginT"]), float(envSettingDict["marginB"]))
-    pharmacistName = envSettingDict["調劑藥師"]
+    msDoc = msWordFormat(float(envSettingDict['pageWd']), float(envSettingDict['pageHt']),
+                         float(envSettingDict['marginL']), float(envSettingDict['marginR']),
+                         float(envSettingDict['marginT']), float(envSettingDict['marginB']))
+    pharmacistName = envSettingDict['調劑藥師']
 
     contentForHeader: list = contentList[0].strip().split('\n')
     receiveNumber: str = extract.extractReceiveNumber(contentForHeader)
     ptName: str = extract.extractPtName(contentForHeader)
     ptBirthDay: str = extract.extractBirthDay(contentForHeader)
-    dipensingDay: datetime.strftime = datetime.datetime.now().strftime("%Y/%m/%d")
+    dipensingDay: datetime.strftime = datetime.datetime.now().strftime('%Y/%m/%d')
     ptChartNumber: str = extract.extractChartNumber(contentForHeader)
     department = extract.extractDepartment(contentForHeader)
     doctorName = extract.extractDoctorName(contentForHeader)
@@ -104,7 +104,7 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
         contentTable = msDoc.add_table(rows=7, cols=3)
         contentTable.cell(0, 1).width = Cm(8)
 
-        headerTable.rows[1].cells[3].text = receiveNumber + " 林口"
+        headerTable.rows[1].cells[3].text = receiveNumber + ' 林口'
         headerTable.rows[1].cells[3].paragraphs[0].runs[0].font.bold = True
         headerTable.rows[2].cells[0].text = ptName
         headerTable.rows[2].cells[2].text = ptBirthDay
@@ -124,14 +124,14 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
         drugProfile = drugProfileDict.get(drugList[index][2], '無資料')
 
         drugCode = drugProfile[12]
-        totalCnt = "000" + drugList[index][5]
-        qrcodeData = drugCode + totalCnt[-3:]
+        totalCnt = '000' + drugList[index][5]
+        qrcodeData = drugCode + totalCnt[-3:] + '    ' + ptChartNumber
         qrCodePath = qrcodeMaker(qrcodeData, tmpStoragePath)
 
-        qrCell = headerTable.cell(0, 0)
-        qrCell = qrCell.paragraphs[0]
-        qrCell = qrCell.add_run()
-        qrCell.add_picture(qrCodePath)
+        headerTable.rows[0].cells[0].paragraphs[0].add_run().add_picture(qrCodePath)
+        headerTable.rows[0].cells[0].add_paragraph()
+        headerTable.rows[0].cells[0].paragraphs[1].text = '離線列印'
+        headerTable.rows[0].cells[0].paragraphs[1].runs[0].font.bold = True
 
 
         contentTable.rows[0].cells[0].text = chr(12304) + '藥名' + chr(12305)
@@ -168,10 +168,7 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
         serialNumberData = '{}     {}'.format(ptChartNumber, drugList[index][0])
         serialNumberQrCodePath = qrcodeMaker(serialNumberData, tmpStoragePath)
 
-        serialNumberCell = contentTable.rows[6].cells[0]
-        serialNumberCell = serialNumberCell.paragraphs[0]
-        serialNumberCell = serialNumberCell.add_run()
-        serialNumberCell.add_picture(serialNumberQrCodePath)
+        contentTable.rows[6].cells[0].paragraphs[0].add_run().add_picture(serialNumberQrCodePath)
         contentTable.rows[6].cells[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
 
         contentTable.rows[6].cells[0].add_paragraph()
@@ -248,7 +245,7 @@ def tkinterSet():
     btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
     btnClear.pack()
 
-    verInfo = tk.Label(root, text='Ver：4.0.0\n作者：謝昀燊Vincent')
+    verInfo = tk.Label(root, text='Ver：4.0.1\n作者：謝昀燊Vincent')
     verInfo.pack()
 
     root.mainloop()
@@ -260,7 +257,7 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay('./頻次.txt')
     envSettingDict = envSet('./env')
     beforeOrAfterDict = {'P': '飯後', 'A': '飯前'}
-    print('版本：4.0.0')
+    print('版本：4.0.1')
     print('作者：謝昀燊Vincent')
     tkinterSet()
     pass
