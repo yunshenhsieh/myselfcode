@@ -1,4 +1,4 @@
-# Version 4.0.4
+# Version 4.0.5
 def extractReceiveNumber(contentForHeader: list[str]) -> str:
     receiveNumber = contentForHeader[3].split('：')[-1][:5].strip()
     return receiveNumber
@@ -48,7 +48,8 @@ def extractMedisonInfo(contentForDrugInfo: str, drugProfileDict: dict) -> list:
 
     for n, medison in enumerate(medisonList):
         drugId = medison[17].split(' ')[0].strip()
-        drugCode = drugProfileDict.get(drugId, "000")[12]
+        # 藥品編號查無資料時，給13個空值的串列，這樣就不會因為串列長度不足而跳錯。
+        drugCode = drugProfileDict.get(drugId, ['' for n in range(13)])[12]
         medisonList[n][2] = drugId
         medisonList[n][1] = drugCode
         # 補足最後一行list長度，不然最後一行沒有備註的話，最後一格就會是藥品編號，列印時就會印在備註。
