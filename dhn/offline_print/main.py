@@ -121,7 +121,8 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
         headerTable.rows[4].cells[1].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
         headerTable.rows[4].cells[3].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
 
-        drugProfile = drugProfileDict.get(drugList[index][2], '無資料')
+        # 藥品編號查無資料時，給13個空值的串列，這樣就不會因為串列長度不足而跳錯。
+        drugProfile = drugProfileDict.get(drugList[index][2], ['' for n in range(13)])
 
         drugCode = drugProfile[12]
         totalCnt = '000' + drugList[index][5]
@@ -136,7 +137,7 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
 
         contentTable.rows[0].cells[0].text = chr(12304) + '藥名' + chr(12305)
         contentTable.rows[0].cells[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.DISTRIBUTE
-        contentTable.rows[0].cells[1].text = '{}   {}'.format(drugProfile[12], drugProfile[1])
+        contentTable.rows[0].cells[1].text = '{}   {}'.format(drugProfile[12], drugList[index][3])
         contentTable.rows[0].cells[1].paragraphs[0].runs[0].font.bold = True
         contentTable.rows[0].cells[2].text = '{} PC'.format(drugList[index][5])
 
@@ -146,16 +147,16 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
 
         contentTable.rows[2].cells[0].text = chr(12304) + '使用方法' + chr(12305)
         contentTable.rows[2].cells[0].paragraphs[0].alignment = WD_PARAGRAPH_ALIGNMENT.DISTRIBUTE
-        contentTable.rows[2].cells[1].text = '{}'.format(useageWayDict.get(drugList[index][12], 'None'))
+        contentTable.rows[2].cells[1].text = '{}'.format(useageWayDict.get(drugList[index][12], ''))
         contentTable.rows[2].cells[2].text = '{} - {}'.format(index + 1, drugCount)
 
         if 'H' in drugList[index][10]:
             contentTable.rows[3].cells[1].text = '{}，每次{}'.format(
-                                        frequencyDict.get(drugList[index][10], "None"),
+                                        frequencyDict.get(drugList[index][10], ''),
                                         drugList[index][8] + drugList[index][9])
         else:
             contentTable.rows[3].cells[1].text = '{}，{}，每次{}'.format(
-                frequencyDict.get(drugList[index][10], 'None'),
+                frequencyDict.get(drugList[index][10], ''),
                 beforeOrAfterDict.get(drugList[index][11], ''),
                 drugList[index][8] + drugList[index][9])
 
@@ -187,10 +188,10 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
     return [receiveNumber, dipensingDay, ptName]
 
 def envSet(filePath: str) -> dict:
-    with open(filePath, "r", encoding="utf-8")as f:
+    with open(filePath, 'r', encoding='utf-8')as f:
         envSettingDict = {}
         for setting in f.readlines():
-            setting = setting.split("=")
+            setting = setting.split('=')
             envSettingDict[setting[0].strip()] = setting[1].strip()
 
     return envSettingDict
@@ -198,7 +199,7 @@ def envSet(filePath: str) -> dict:
 def tkinterSet():
     root = tk.Tk()
     root.title('急診離線藥袋列印')
-    root.geometry('{}x{}'.format(envSettingDict["視窗寬度"], envSettingDict["視窗高度"]))
+    root.geometry('{}x{}'.format(envSettingDict['視窗寬度'], envSettingDict['視窗高度']))
 
     text = tk.Text(root)  # 放入多行輸入框
     text.pack()
@@ -257,7 +258,7 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay('./頻次.txt')
     envSettingDict = envSet('./env')
     beforeOrAfterDict = {'P': '飯後', 'A': '飯前'}
-    print('版本：4.0.4')
+    print('版本：4.0.5')
     print('作者：謝昀燊Vincent')
     tkinterSet()
     pass
