@@ -75,7 +75,7 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
                          float(envSettingDict['marginT']), float(envSettingDict['marginB']))
     pharmacistName = envSettingDict['調劑藥師']
 
-    contentHeaderList, contentMedisonList = extract.seperateHeaderAndMedsionInfo(contentList)
+    contentHeaderList, contentMedicineList = extract.seperateHeaderAndMedicineInfo(contentList)
 
     receiveNumber: str = extract.extractReceiveNumber(contentHeaderList)
     ptName: str = extract.extractPtName(contentHeaderList)
@@ -85,7 +85,7 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
     department: str = extract.extractDepartment(contentHeaderList)
     doctorName: str = extract.extractDoctorName(contentHeaderList)
 
-    drugList = extract.extractMedisonInfo(contentMedisonList, drugProfileDict)
+    drugList = extract.extractMedicineInfo(contentMedicineList, drugProfileDict)
 
     paragraph_format = msDoc.styles['Normal'].paragraph_format
     paragraph_format.space_after = 1
