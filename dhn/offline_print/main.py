@@ -21,9 +21,9 @@ def loadDrugProfile(filePath: str) -> dict:
 
 def loadUseageWay(filePath: str) -> dict:
     useageWayDict = {}
-    with open(filePath, "r", encoding="utf-8")as f:
+    with open(filePath, 'r', encoding='utf-8')as f:
         for data in f.readlines():
-            data = data.split("=")
+            data = data.split('=')
             useageWayDict[data[0].strip()] = data[1].strip()
     return useageWayDict
 
@@ -31,13 +31,13 @@ def loadPrint(filePath: str, printerName: str, receiveNumber: str, ptName: str):
     filePath = os.getcwd() + filePath
     win32api.ShellExecute(
         0,
-        "print",
+        'print',
         filePath,
-        "/d:{}".format(win32print.OpenPrinter(printerName)),
-        ".",
+        '/d:{}'.format(win32print.OpenPrinter(printerName)),
+        '.',
         0
     )
-    print("領藥號：{}，病人：{}，列印完成。".format(receiveNumber, ptName))
+    print('領藥號：{}，病人：{}，列印完成。'.format(receiveNumber, ptName))
     pass
 
 def msWordFormat(pageWd: float, pageHt: float, marginL: float, marginR: float, marginT: float, marginB: float) -> docx.Document():
@@ -75,17 +75,17 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
                          float(envSettingDict['marginT']), float(envSettingDict['marginB']))
     pharmacistName = envSettingDict['調劑藥師']
 
-    contentForHeader: list = contentList[0].split('\n')
-    receiveNumber: str = extract.extractReceiveNumber(contentForHeader)
-    ptName: str = extract.extractPtName(contentForHeader)
-    ptBirthDay: str = extract.extractBirthDay(contentForHeader)
-    dipensingDay: datetime.strftime = datetime.datetime.now().strftime('%Y/%m/%d')
-    ptChartNumber: str = extract.extractChartNumber(contentForHeader)
-    department = extract.extractDepartment(contentForHeader)
-    doctorName = extract.extractDoctorName(contentForHeader)
+    contentHeaderList, contentMedisonList = extract.seperateHeaderAndMedsionInfo(contentList)
 
-    contentForDrugInfo: str = contentList[-1]
-    drugList = extract.extractMedisonInfo(contentForDrugInfo, drugProfileDict)
+    receiveNumber: str = extract.extractReceiveNumber(contentHeaderList)
+    ptName: str = extract.extractPtName(contentHeaderList)
+    ptBirthDay: str = extract.extractBirthDay(contentHeaderList)
+    dipensingDay: datetime.strftime = datetime.datetime.now().strftime('%Y/%m/%d')
+    ptChartNumber: str = extract.extractChartNumber(contentHeaderList)
+    department: str = extract.extractDepartment(contentHeaderList)
+    doctorName: str = extract.extractDoctorName(contentHeaderList)
+
+    drugList = extract.extractMedisonInfo(contentMedisonList, drugProfileDict)
 
     paragraph_format = msDoc.styles['Normal'].paragraph_format
     paragraph_format.space_after = 1
@@ -126,7 +126,7 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
 
         drugCode = drugProfile[12]
         totalCnt = '000' + drugList[index][5]
-        qrcodeData = drugCode + totalCnt[-3:] + '    ' + ptChartNumber
+        qrcodeData = drugCode + totalCnt[-3:] + '     ' + ptChartNumber
         qrCodePath = qrcodeMaker(qrcodeData, tmpStoragePath)
 
         headerTable.rows[0].cells[0].paragraphs[0].add_run().add_picture(qrCodePath)
@@ -211,7 +211,7 @@ def tkinterSet():
     resultInfoLabel_2.pack()
 
     def save():
-        contentList = text.get(1.0, 'end-1c').strip().split('開單醫師')
+        contentList = text.get(1.0, 'end-1c').strip().split('\n')
         # 使用 end-1c 表示取得倒數第二個字元 ( 因為最後一個字元是換行符 )
         info = drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict, drugProfileDict)
         resultInfoTxt_1.set('領藥號：{}，病人：{}'.format(info[0], info[2]))
@@ -220,7 +220,7 @@ def tkinterSet():
         pass
 
     def saveAndPrint():
-        contentList = text.get(1.0, 'end-1c').strip().split('開單醫師')
+        contentList = text.get(1.0, 'end-1c').strip().split('\n')
         # 使用 end-1c 表示取得倒數第二個字元 ( 因為最後一個字元是換行符 )
         info = drugBagMaker(contentList, useageWayDict, frequencyDict, beforeOrAfterDict, envSettingDict, drugProfileDict)
         printerName = envSettingDict['印表機名稱']
@@ -246,7 +246,7 @@ def tkinterSet():
     btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
     btnClear.pack()
 
-    verInfo = tk.Label(root, text='Ver：4.0.4\n作者：謝昀燊Vincent')
+    verInfo = tk.Label(root, text='Ver：4.0.6\n作者：謝昀燊Vincent')
     verInfo.pack()
 
     root.mainloop()
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay('./頻次.txt')
     envSettingDict = envSet('./env')
     beforeOrAfterDict = {'P': '飯後', 'A': '飯前'}
-    print('版本：4.0.5')
+    print('版本：4.0.6')
     print('作者：謝昀燊Vincent')
     tkinterSet()
     pass
