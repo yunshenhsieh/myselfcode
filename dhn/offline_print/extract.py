@@ -1,4 +1,4 @@
-# Version 4.0.6
+# Version 4.0.7
 def extractReceiveNumber(contentHeaderList: list[str]) -> str:
     receiveNumber = contentHeaderList[3].split('：')[-1][:5].strip()
     return receiveNumber
@@ -25,8 +25,7 @@ def extractDoctorName(contentHeaderList: list[str]) -> str:
     doctorName = contentHeaderList[5].split('醫師')[-2][-4:].strip()
     return doctorName
 
-def sortSerialNumber(contentMedicineList: list) -> list:
-    medicineList = [medicineData.strip().split('\t') for medicineData in contentMedicineList]
+def sortSerialNumber(medicineList: list) -> list:
 
     for n, medicineData in enumerate(medicineList):
         medicineList[n][0] = int(medicineData[0])
@@ -62,3 +61,8 @@ def seperateHeaderAndMedicineInfo(contentList: list) -> list:
         else:
             contentHeaderList.append(content)
     return contentHeaderList, contentMedicineList
+
+def checkReceiveNumber(contentMedicineList: list, receiveNumber: str) -> list:
+    medicineList = [medicineList.strip().split('\t') for medicineList in contentMedicineList]
+    medicineList = [medicineList for medicineList in medicineList if receiveNumber == medicineList[4]]
+    return medicineList
