@@ -85,7 +85,9 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
     department: str = extract.extractDepartment(contentHeaderList)
     doctorName: str = extract.extractDoctorName(contentHeaderList)
 
-    drugList = extract.extractMedicineInfo(contentMedicineList, drugProfileDict)
+    # 比對選取藥品是否跟審核處方的領藥號是相同的。
+    medicineList = extract.checkReceiveNumber(contentMedicineList, receiveNumber)
+    drugList = extract.extractMedicineInfo(medicineList, drugProfileDict)
 
     paragraph_format = msDoc.styles['Normal'].paragraph_format
     paragraph_format.space_after = 1
@@ -246,7 +248,7 @@ def tkinterSet():
     btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
     btnClear.pack()
 
-    verInfo = tk.Label(root, text='Ver：4.0.6\n作者：謝昀燊Vincent')
+    verInfo = tk.Label(root, text='Ver：4.0.7\n作者：謝昀燊Vincent')
     verInfo.pack()
 
     root.mainloop()
@@ -258,7 +260,7 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay('./頻次.txt')
     envSettingDict = envSet('./env')
     beforeOrAfterDict = {'P': '飯後', 'A': '飯前'}
-    print('版本：4.0.6')
+    print('版本：4.0.7')
     print('作者：謝昀燊Vincent')
     tkinterSet()
     pass
