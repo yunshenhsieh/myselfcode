@@ -202,6 +202,8 @@ def ppOclassParser(oClass: [list], codeNameDict: dict) -> list:
     for levelNum, data in ppTotalLevelDict.items():
         tmpItemsList = []
         for drugCode, cnt in data.items():
+            if drugCodeAndPPLocationDict[drugCode] == None:
+                drugCodeAndPPLocationDict[drugCode] = '定位檔中此藥未建檔'
             tmpItemsList.append([levelNum, drugCode, cnt, drugCodeAndPPLocationDict[drugCode], codeNameDict[drugCode]])
 
         tmpItemsList.sort(key=lambda s: s[3])
@@ -225,7 +227,7 @@ def locationFileClean(filePath: str) -> dict:
 
 def drugFileClean(drugFilePath: str, LocationFilePath: str) -> dict:
     # 將pp的「材編:位置」轉成「料位號：位置」。
-    with open(drugFilePath, "r", encoding="big5-hkscs")as f:
+    with open(drugFilePath, "r", encoding="utf-8")as f:
         drugFile = f.readlines()
 
     PPDrugLocationDict = locationFileClean(LocationFilePath)
@@ -291,9 +293,9 @@ def deletePostdata(recordDate: str):
     pass
 
 if __name__ == "__main__":
-    # version 1.2.3
+    # version 1.2.4
     load_dotenv()
-    recordDate = "20230503"
+    recordDate = "20250618"
 
     exeCode = 0
     if exeCode == 0:
