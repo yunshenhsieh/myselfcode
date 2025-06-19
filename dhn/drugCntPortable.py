@@ -163,16 +163,18 @@ def ppOclassParser(oClass: [list], codeNameDict: dict) -> list:
                 ppTotalLevelDict[oList[0][0:4]][oList[1]] = \
                     ppTotalLevelDict[oList[0][0:4]].get(oList[1]) + (int(oList[2]) * oList[3])
 
-    drugCodeAndPPLocationDict = drugFileClean("./Adgn.txt",
-                                              "./pp_location.txt")
-
+    drugCodeAndPPLocationDict = drugFileClean("./data/Adgn.txt",
+                                              "./data/pp_location.txt")
     tmpOclassCntList = [["樓層", "料位號", "總用量", "定位", "藥品名稱"]]
     for levelNum, data in ppTotalLevelDict.items():
         tmpItemsList = []
         for drugCode, cnt in data.items():
+            if drugCodeAndPPLocationDict[drugCode] == None:
+                drugCodeAndPPLocationDict[drugCode] = '定位檔中此藥未建檔'
             tmpItemsList.append([levelNum, drugCode, cnt, drugCodeAndPPLocationDict[drugCode], codeNameDict[drugCode]])
 
         tmpItemsList.sort(key=lambda s: s[3])
+
         tmpOclassCntList = tmpOclassCntList + tmpItemsList
         tmpOclassCntList.append([])
         tmpOclassCntList.append([])
@@ -193,7 +195,7 @@ def locationFileClean(filePath: str) -> dict:
 
 def drugFileClean(drugFilePath: str, LocationFilePath: str) -> dict:
     # 將pp的「材編:位置」轉成「料位號：位置」。
-    with open(drugFilePath, "r", encoding="big5-hkscs")as f:
+    with open(drugFilePath, "r", encoding="utf-8")as f:
         drugFile = f.readlines()
 
     PPDrugLocationDict = locationFileClean(LocationFilePath)
@@ -207,10 +209,15 @@ def drugFileClean(drugFilePath: str, LocationFilePath: str) -> dict:
     return drugCodeAndPPLocationDict
 
 def ppUseGroup(separateLevelGroupFinishList: list) -> list:
-    header = ["料位號", "使用數量", "幾組"]
+    header = ["料位號", "使用數量", "幾組", "品名"]
     Pq_N_SvyGruopList = [separateLevelGroupFinishList[1][1:],
                          separateLevelGroupFinishList[2][1:],
                          separateLevelGroupFinishList[3][1:]]
+    drugCodeAndNameDict = {}
+    for gruopList in Pq_N_SvyGruopList:
+        for dataList in gruopList:
+            if dataList:
+                drugCodeAndNameDict[dataList[1]] = dataList[-1]
 
     Pq_N_SvyGruopDict = {}
     for data_list in Pq_N_SvyGruopList:
@@ -223,13 +230,13 @@ def ppUseGroup(separateLevelGroupFinishList: list) -> list:
 
     Pq_N_SvyGruopFinalList = [header]
     for k, v in Pq_N_SvyGruopDict.items():
-        Pq_N_SvyGruopFinalList.append([k[0], k[1], v])
+        Pq_N_SvyGruopFinalList.append([k[0], k[1], v, drugCodeAndNameDict[k[0]]])
 
     Pq_N_SvyGruopFinalList = [Pq_N_SvyGruopFinalList]
     return Pq_N_SvyGruopFinalList
 
 def updateData(recordDate: str):
-    separateLevelGroupFinishList, nstuList, ppOclassCntList = drugCntOutput("Batchdata{}.csv".format(recordDate))
+    separateLevelGroupFinishList, nstuList, ppOclassCntList = drugCntOutput("./history/Batchdata{}.csv".format(recordDate))
     wb = openpyxl.Workbook()
     for cnt in range(len(separateLevelGroupFinishList)):
         drugCntToExcel("{}".format(recordDate) + "0{}".format(cnt + 1), separateLevelGroupFinishList[cnt], wb)
@@ -251,8 +258,9 @@ def updateData(recordDate: str):
 
 
 if __name__ == "__main__":
-    # version 1.4.0
-
+    # Version 1.4.2
+    print("Version 1.4.2")
+    print("製作人員：謝昀燊")
     fileDate = input("請輸入檔案日期：")
     updateData(fileDate)
 
