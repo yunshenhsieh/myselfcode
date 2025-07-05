@@ -47,6 +47,7 @@
 
     window.onload = function () {
       google.script.run.withSuccessHandler(initTable).getSheetData();
+      updateTime();
     };
 
     function initTable(data) {
@@ -161,5 +162,31 @@
         .replace(/>/g, "&gt;");
     }
   </script>
+
+  <script>function updateTime() {
+        google.script.run.withSuccessHandler(
+          function(data){            
+              document.getElementById("drugfile_update_date_id").innerHTML = data[1];
+              document.getElementById("pb_locationfile_update_date_id").innerHTML = data[2];
+              document.getElementById("pp_locationfile_update_date_id").innerHTML = data[3];
+              document.getElementById("pa_locationfile_update_date_id").innerHTML = data[4];
+              document.getElementById("mye_locationfile_update_date_id").innerHTML = data[5];
+              document.getElementById("pk_locationfile_update_date_id").innerHTML = data[6];
+              document.getElementById("version_id").innerHTML = data[7];
+
+          }
+        ).searchUpdateTime();
+      };      
+    </script>
+  <div>
+    <h4 id="drugfile_update_date_id"></h4>
+    <h4 id="pb_locationfile_update_date_id"></h4>
+    <h4 id="pp_locationfile_update_date_id"></h4>
+    <h4 id="pa_locationfile_update_date_id"></h4>
+    <h4 id="mye_locationfile_update_date_id"></h4>
+    <h4 id="pk_locationfile_update_date_id"></h4><br>
+    <h4 id="version_id"><h4>
+    <h4>作者：Vincent 燊<h4>
+  </div>
 </body>
 </html>
