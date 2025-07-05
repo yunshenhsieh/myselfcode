@@ -1,252 +1,165 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <base target="_top">
-    <style type="text/css">
-    button{
-      color: white;
-      font-size: 80px;
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>模糊搜尋 + 高亮 + QR Code + 藥品外觀</title>
+  <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
     }
-    h1{
-      color: white;
+    input {
+      width: 300px;
+      padding: 8px;
+      font-size: 16px;
     }
-		*{
-      background-color: black;
-			margin: 0;
-			padding: 0;
-			list-style: none;
-		}
-		.wrap{
-			width: 100%;
-		}
-		.item{
-			margin:0px 10px 20px;
-      width:800px;
-      height:20px;
-      margin:0 auto;
-		}
-	</style>
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-  <script>function sendData() {
-        google.script.run.withSuccessHandler(
-          function(data){
-            if (data.includes("查無資料")){
-              data = data.toUpperCase();
-              document.getElementById("search_result").innerHTML = data;
-              document.getElementById("barcode_svg").innerHTML = "";
+    table {
+      margin-top: 20px;
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    mark {
+      background-color: yellow;
+      font-weight: bold;
+    }
+    img.qr {
+      width: 64px;
+      height: 64px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔍 模糊搜尋 + 高亮 + QR Code + 藥品外觀</h2>
+  <input type="text" id="searchInput" placeholder="輸入關鍵字..." />
+  <div id="tableContainer">請輸入關鍵字進行搜尋</div>
 
-              this.cleanResult();              
-              this.clean();
-            }else{              
-              try{
-                JsBarcode("#barcode_svg", data[3] + "0019999999", {width:4, fontSize:30});}
-              catch (e){
-                console.log(e)
-                document.getElementById("barcode_svg").innerHTML = "";
-                this.clean();
-                this.cleanResult();
-                this.cleanSearchResult();
-              }
-              document.getElementById("drug_picture_website_title").innerHTML = "藥品圖片：";
-              document.getElementById("product_code_title").innerHTML = "1、藥材編號：";
-              document.getElementById("drug_code_title").innerHTML = "2、料位號：";
-              document.getElementById("drug_name_title").innerHTML = "3、藥品名稱：";
-              document.getElementById("first_brand_name_title").innerHTML = "4、第一商品名：";
-              document.getElementById("secend_brand_name_title").innerHTML = "5、第二商品名：";
-              document.getElementById("pb_location_title").innerHTML = "6、PB定位：";
-              document.getElementById("pp_location_title").innerHTML = "7、PP定位：";
-              document.getElementById("pa_location_title").innerHTML = "8、PA定位：";
-              document.getElementById("mye_location_title").innerHTML = "9、MYE定位：";
-              document.getElementById("pk_location_title").innerHTML = "10、PK定位：";
+  <script>
+    let originalData = [];
+    let headers = [];
+    let fuse;
 
-              document.getElementById("drug_picture_website").innerHTML = "https://www.cgmh.org.tw/tw/Services/DrugSearch?keyword=" + data[0];
-              document.getElementById("drug_picture_website_herf").href = "https://www.cgmh.org.tw/tw/Services/DrugSearch?keyword=" + data[0];
-              document.getElementById("product_code").innerHTML = data[0];
-              document.getElementById("drug_code").innerHTML = data[3];
-              document.getElementById("drug_name").innerHTML = data[1];
-              document.getElementById("first_brand_name").innerHTML = data[2];
-              document.getElementById("secend_brand_name").innerHTML = data[4];
-              document.getElementById("pb_location").innerHTML = data[5];
-              document.getElementById("pp_location").innerHTML = data[6];
-              document.getElementById("pa_location").innerHTML = data[7];
-              document.getElementById("mye_location").innerHTML = data[8];
-              document.getElementById("pk_location").innerHTML = data[9];
-              
-              this.cleanSearchResult();
-              this.clean();              
-            }
-          }
-        ).searchSheet(document.getElementById("input_user").value.trim());
-      };      
-    </script>
-
-  <script>function sendProductCode() {
-        google.script.run.withSuccessHandler(
-          function(data){
-            if (data.includes("查無資料")){
-              data = data.toUpperCase();
-              document.getElementById("search_result").innerHTML = data;
-              document.getElementById("barcode_svg").innerHTML = "";
-
-              this.cleanResult();              
-              this.clean();
-            }else{              
-              try{
-                JsBarcode("#barcode_svg", data[3] + "0019999999", {width:4, fontSize:30});}
-              catch (e){
-                console.log(e)
-                document.getElementById("barcode_svg").innerHTML = "";
-                this.clean();
-                this.cleanResult();
-                this.cleanSearchResult();
-              }
-              document.getElementById("drug_picture_website_title").innerHTML = "藥品圖片：";
-              document.getElementById("product_code_title").innerHTML = "1、藥材編號：";
-              document.getElementById("drug_code_title").innerHTML = "2、料位號：";
-              document.getElementById("drug_name_title").innerHTML = "3、藥品名稱：";
-              document.getElementById("first_brand_name_title").innerHTML = "4、第一商品名：";
-              document.getElementById("secend_brand_name_title").innerHTML = "5、第二商品名：";
-              document.getElementById("pb_location_title").innerHTML = "6、PB定位：";
-              document.getElementById("pp_location_title").innerHTML = "7、PP定位：";
-              document.getElementById("pa_location_title").innerHTML = "8、PA定位：";
-              document.getElementById("mye_location_title").innerHTML = "9、MYE定位：";
-              document.getElementById("pk_location_title").innerHTML = "10、PK定位：";
-
-              document.getElementById("drug_picture_website").innerHTML = "https://www.cgmh.org.tw/tw/Services/DrugSearch?keyword=" + data[0];
-              document.getElementById("drug_picture_website_herf").href = "https://www.cgmh.org.tw/tw/Services/DrugSearch?keyword=" + data[0];
-              document.getElementById("product_code").innerHTML = data[0];
-              document.getElementById("drug_code").innerHTML = data[3];
-              document.getElementById("drug_name").innerHTML = data[1];
-              document.getElementById("first_brand_name").innerHTML = data[2];
-              document.getElementById("secend_brand_name").innerHTML = data[4];
-              document.getElementById("pb_location").innerHTML = data[5];
-              document.getElementById("pp_location").innerHTML = data[6];
-              document.getElementById("pa_location").innerHTML = data[7];
-              document.getElementById("mye_location").innerHTML = data[8];
-              document.getElementById("pk_location").innerHTML = data[9];
-              
-              this.cleanSearchResult();
-              this.clean();              
-            }
-          }
-        ).searchProductCode(document.getElementById("input_user").value.trim());
-      };      
-    </script>
-  
-  <script>function barcodeGenerate(){
-        strBarcode = document.getElementById("input_user").value.trim();
-      if (strBarcode.length < 1){
-        document.getElementById("search_result").innerHTML = "請輸入資訊。";
-        document.getElementById("barcode_svg").innerHTML = "";
-
-        this.cleanResult();
-        this.clean();
-      }else{
-        JsBarcode("#barcode_svg", strBarcode.toUpperCase() + "0019999999", {width:4, fontSize:30});
-
-        this.cleanSearchResult();
-        this.cleanResult();
-        this.clean();        
-      }        
-  };
-    </script>
-
-    <script>function clean() {
-        document.getElementById("input_user").value = "";
-      };      
-    </script>
-
-    <script>function cleanResult() {
-        document.getElementById("drug_picture_website_title").innerHTML = "";
-        document.getElementById("product_code_title").innerHTML = "";
-        document.getElementById("drug_code_title").innerHTML = "";
-        document.getElementById("drug_name_title").innerHTML = "";
-        document.getElementById("first_brand_name_title").innerHTML = "";
-        document.getElementById("secend_brand_name_title").innerHTML = "";
-        document.getElementById("pb_location_title").innerHTML = "";
-        document.getElementById("pp_location_title").innerHTML = "";
-        document.getElementById("pa_location_title").innerHTML = "";
-        document.getElementById("mye_location_title").innerHTML = "";
-        document.getElementById("pk_location_title").innerHTML = "";
-
-        document.getElementById("drug_picture_website").innerHTML = "";
-        document.getElementById("product_code").innerHTML = "";
-        document.getElementById("drug_code").innerHTML = "";
-        document.getElementById("drug_name").innerHTML = "";
-        document.getElementById("first_brand_name").innerHTML = "";
-        document.getElementById("secend_brand_name").innerHTML = "";
-        document.getElementById("pb_location").innerHTML = "";
-        document.getElementById("pp_location").innerHTML = "";
-        document.getElementById("pa_location").innerHTML = "";
-        document.getElementById("mye_location").innerHTML = "";
-        document.getElementById("pk_location").innerHTML = "";
+    window.onload = function () {
+      google.script.run.withSuccessHandler(initTable).getSheetData();
     };
-    </script>
 
-    <script>function cleanSearchResult() {
-        document.getElementById("search_result").innerHTML = "";
-      };      
-    </script>
+    function initTable(data) {
+      if (!data || data.length < 2) {
+        document.getElementById("tableContainer").innerText = "沒有資料";
+        return;
+      }
 
-    <script>function updateTime() {
-        google.script.run.withSuccessHandler(
-          function(data){            
-              document.getElementById("drugfile_update_date_id").innerHTML = data[1];
-              document.getElementById("pb_locationfile_update_date_id").innerHTML = data[2];
-              document.getElementById("pp_locationfile_update_date_id").innerHTML = data[3];
-              document.getElementById("pa_locationfile_update_date_id").innerHTML = data[4];
-              document.getElementById("mye_locationfile_update_date_id").innerHTML = data[5];
-              document.getElementById("pk_locationfile_update_date_id").innerHTML = data[6];
-              document.getElementById("version_id").innerHTML = data[7];
+      headers = data[0];
+      const rows = data.slice(1);
+      originalData = rows.map(row => {
+        let obj = {};
+        headers.forEach((h, i) => obj[h] = row[i]);
+        return obj;
+      });
 
-          }
-        ).searchUpdateTime();
-      };      
-    </script>
+      fuse = new Fuse(originalData, {
+        keys: headers,
+        threshold: 0.4,
+        includeMatches: true
+      });
 
-  </head>
-  <body onload="updateTime()">
-    <div class="wrap">
-	<div class="item">
-        <br>
-		<h1 style="font-size: 50px;">品項名查詢</h1>
-      <br>
-        <input id="input_user" type="text" style="font-size: 150px; width: 1200px; background-color: white" name="userName">
-      <br><br><br>
-      <button type="submit" onclick="sendData()">用料位號查詢</button>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-      <br><br><br>
-      <button type="submit" onclick="sendProductCode()">用材編查詢</button>
-      <br><br><br>
-      <button type="submit" onclick="barcodeGenerate()">產生Barcode</button>       
-      <br><br><br>
-      <button type="reset" onclick="clean()">清除</button>
-      <br><br><br>
-    
-    <svg id="barcode_svg"></svg>
-    <h1 id="search_result" style="font-size: 4em; color: #FFA600;"></h1>
+      document.getElementById("tableContainer").innerText = "請輸入關鍵字進行搜尋";
+    }
 
-    <br><br>
-    <h1 id="drug_picture_website_title"></h1><a id="drug_picture_website_herf" target="_blank"><h1 id="drug_picture_website" style="font-size: 4em; color: #FFA600;"></h1></a><br><br>
-    <h1 id="product_code_title"></h1><h1 id="product_code" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="drug_code_title"></h1><h1 id="drug_code" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="drug_name_title"></h1><h1 id="drug_name" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="first_brand_name_title"></h1><h1 id="first_brand_name" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="secend_brand_name_title"></h1><h1 id="secend_brand_name" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="pb_location_title"></h1><h1 id="pb_location" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="pp_location_title"></h1><h1 id="pp_location" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="pa_location_title"></h1><h1 id="pa_location" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="mye_location_title"></h1><h1 id="mye_location" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <h1 id="pk_location_title"></h1><h1 id="pk_location" style="font-size: 4em; color: #FFA600;"></h1><br><br>
-    <br><br><br>
-    <h4 id="drugfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4>
-    <h4 id="pb_locationfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4>
-    <h4 id="pp_locationfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4>
-    <h4 id="pa_locationfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4>
-    <h4 id="mye_locationfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4>
-    <h4 id="pk_locationfile_update_date_id" style="font-size: 2em; color: #FFA600;"></h4><br>
-    <h4 id="version_id" style="color: #FFA600;"><h4>
-    <h4 style="color: #FFA600;">作者：Vincent 燊<h4>
-	</div>  
-</div>
-  </body>
+    document.getElementById("searchInput").addEventListener("input", function () {
+      const keyword = this.value.trim();
+      if (!keyword) {
+        document.getElementById("tableContainer").innerHTML = "";
+        return;
+      }
+
+      const results = fuse.search(keyword);
+      renderTable(results);
+    });
+
+    function renderTable(results) {
+  if (!results || results.length === 0) {
+    document.getElementById("tableContainer").innerHTML = "沒有符合的資料";
+    return;
+  }
+
+  let html = "<table><thead><tr>";
+  html += "<th>QR Code</th>";
+  headers.forEach(h => html += `<th>${h}</th>`);
+  html += "<th>藥品外觀</th>"; // ✅ 新增欄位
+  html += "</tr></thead><tbody>";
+
+  results.forEach(result => {
+    const row = result.item;
+    const matchMap = {};
+
+    if (result.matches) {
+      result.matches.forEach(m => {
+        matchMap[m.key] = m.indices;
+      });
+    }
+
+    const qrContent = row["料位號"] ? `${row["料位號"]}00199999999` : "";
+    const qrUrl = qrContent
+      ? `https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(qrContent)}`
+      : "";
+
+    html += "<tr>";
+    html += `<td>${qrUrl ? `<img class="qr" src="${qrUrl}" alt="QR">` : "N/A"}</td>`;
+
+    headers.forEach(h => {
+      const val = String(row[h] ?? "");
+      if (matchMap[h]) {
+        html += `<td>${highlightMatch(val, matchMap[h])}</td>`;
+      } else {
+        html += `<td>${val}</td>`;
+      }
+    });
+
+    // ✅ 新增「藥品外觀」欄位，使用 encodeURIComponent 保護網址參數
+    const drugId = row["藥品編號"];
+    let drugLink = "無資料";
+    if (drugId) {
+      const safeId = encodeURIComponent(String(drugId));
+      const href = `https://www.cgmh.org.tw/tw/Services/DrugSearch?keyword=${safeId}`;
+      drugLink = `<a href="${href}" target="_blank">查看</a>`;
+    }
+    html += `<td>${drugLink}</td>`;
+
+    html += "</tr>";
+  });
+
+  html += "</tbody></table>";
+  document.getElementById("tableContainer").innerHTML = html;
+}
+
+
+    function highlightMatch(text, indices) {
+      let result = "";
+      let lastIndex = 0;
+
+      indices.forEach(([start, end]) => {
+        result += escapeHTML(text.slice(lastIndex, start));
+        result += `<mark>${escapeHTML(text.slice(start, end + 1))}</mark>`;
+        lastIndex = end + 1;
+      });
+
+      result += escapeHTML(text.slice(lastIndex));
+      return result;
+    }
+
+    function escapeHTML(str) {
+      return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+  </script>
+</body>
 </html>
