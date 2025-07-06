@@ -6,12 +6,12 @@ import os
 def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
 
     # If modifying these scopes, delete the file token.json.
-    SERVICE_ACCOUNT_FILE = '../{}'.format(os.getenv('py_gsheet_key_filename'))
+    SERVICE_ACCOUNT_FILE = './{}'.format(os.getenv('google_sheet_api_key'))
     SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
     creds = service_account.Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
     # The ID and range of a sample spreadsheet.
     # Example : https://docs.google.com/spreadsheets/d/<google sheet ID>/edit#gid=0
-    SAMPLE_SPREADSHEET_ID = os.getenv('< gsheet ID >')
+    SAMPLE_SPREADSHEET_ID = os.getenv('drugfile_sheet_id')
     service = build('sheets', 'v4', credentials=creds)
 
     # Call the Sheets API
@@ -22,12 +22,12 @@ def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
     data_finish = data_finish[1:]
 
     # 寫入colnum到google sheet
-    SAMPLE_RANGE_NAME = "{}!A{}".format("< sheet name >", < start row number >)
+    SAMPLE_RANGE_NAME = "{}!A{}".format("drugfile", 1)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                           valueInputOption="USER_ENTERED", body={"values": [col_header]}).execute()
 
     # 寫入資料到google sheet
-    SAMPLE_RANGE_NAME = "{}!A{}".format("< sheet name >", < start row number >)
+    SAMPLE_RANGE_NAME = "{}!A{}".format("drugfile", 14)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                           valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
     pass
@@ -43,7 +43,7 @@ def locationFileClean(filePath: str) -> dict:
     return result
 
 def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
-    with open(drugFilePath, "r", encoding="big5-hkscs")as f:
+    with open(drugFilePath, "r", encoding="utf-8")as f:
         drugFile = f.readlines()
     PBDrugLocationDict = locationFileClean(LocationFilePath[0])
     PPDrugLocationDict = locationFileClean(LocationFilePath[1])
@@ -67,23 +67,25 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
                                MYEDrugLocationDict.get(content[0], ""),
                                PKDrugLocationDict.get(content[0], "")])
     updateTime = ["更新時間",
-                  "Drug檔更新日：{}".format("< Update time >"),
-                  "PB定位更新日：{}".format("< Update time >"),
-                  "PP定位更新日：{}".format("< Update time >"),
-                  "PA定位更新日：{}".format("< Update time >"),
-                  "MYE定位更新日：{}".format("< Update time >"),
-                  "PK定位更新日：{}".format("< Update time >"),
-                  "Version：{}".format("< Version number >")]
+                  "Drug檔更新日：{}".format("2025-06-18 10:48"),
+                  "PB定位更新日：{}".format("2024-05-05 14:49"),
+                  "PP定位更新日：{}".format("2024-05-05 14:49"),
+                  "PA定位更新日：{}".format("2024-05-05 14:49"),
+                  "MYE定位更新日：{}".format("2024-05-05 14:49"),
+                  "PK定位更新日：{}".format("2024-05-05 14:49"),
+                  "Web Version：{}".format("2.1.0"),
+                  "Backend Version：{}".format("1.7.4")]
     result.append(updateTime)
 
     return result
 
 if __name__ == "__main__":
+    # version 1.7.4
     load_dotenv()
-    LocationFilePath = ["< PB location filepath >",
-                        "< PP location filepath >",
-                        "< PA location filepath >",
-                        "< MYE location filepath >",
-                        "< PK location filepath >", ]
+    LocationFilePath = ["D:/PyCharmProjection/allprojection/cgmh/data/pb_location.txt",
+                        "D:/PyCharmProjection/allprojection/cgmh/data/pp_location.txt",
+                        "D:/PyCharmProjection/allprojection/cgmh/data/pa_location.txt",
+                        "D:/PyCharmProjection/allprojection/cgmh/data/mye_location.txt",
+                        "D:/PyCharmProjection/allprojection/cgmh/data/pk_location.txt", ]
 
-    cgmhDrugfileGsheet("< drugfile filepath >", LocationFilePath)
+    cgmhDrugfileGsheet("./data/Adgn.txt", LocationFilePath)
