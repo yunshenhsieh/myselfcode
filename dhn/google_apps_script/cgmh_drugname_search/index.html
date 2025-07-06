@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <title>模糊搜尋 + 高亮 + QR Code + 藥品外觀</title>
   <script src="https://cdn.jsdelivr.net/npm/fuse.js/dist/fuse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
   <style>
     body {
       font-family: sans-serif;
@@ -12,33 +14,47 @@
     input {
       width: 300px;
       padding: 8px;
-      font-size: 16px;
+      font-size: 30px;
     }
     table {
       margin-top: 20px;
       border-collapse: collapse;
-      width: 100%;
+      width: auto;
+      max-width: 100%;
     }
     th, td {
       border: 1px solid #ccc;
       padding: 6px 8px;
       text-align: left;
       vertical-align: top;
+      max-width: 200px;
+      word-wrap: break-word;
+      word-break: break-all;
+      white-space: normal;
     }
     mark {
       background-color: yellow;
       font-weight: bold;
     }
-    img.qr {
+    .qr {
       width: 64px;
       height: 64px;
+    }
+    #tableContainer {
+      max-width: 100%;
+      overflow-x: auto;
     }
   </style>
 </head>
 <body>
   <h2>🔍 模糊搜尋 + 高亮 + QR Code + 藥品外觀</h2>
-  <input type="text" id="searchInput" placeholder="輸入關鍵字..." />
-  <div id="tableContainer">請輸入關鍵字進行搜尋</div>
+
+  <div id="searchBar" style="display: none;">
+    <input type="text" id="searchInput" placeholder="輸入關鍵字..." />
+    <button type="reset" style="font-size: 30px; padding: 0.2em 0.6em;" onclick="clean()">清除</button>
+  </div>
+
+  <div id="tableContainer"></div>
 
   <script>
     let originalData = [];
@@ -66,11 +82,11 @@
 
       fuse = new Fuse(originalData, {
         keys: headers,
-        threshold: 0.4,
+        threshold: 0.2,
         includeMatches: true
       });
 
-      document.getElementById("tableContainer").innerText = "請輸入關鍵字進行搜尋";
+      document.getElementById("searchBar").style.display = "block";
     }
 
     document.getElementById("searchInput").addEventListener("input", function () {
@@ -85,61 +101,81 @@
     });
 
     function renderTable(results) {
-  if (!results || results.length === 0) {
-    document.getElementById("tableContainer").innerHTML = "沒有符合的資料";
-    return;
-  }
-
-  let html = "<table><thead><tr>";
-  html += "<th>QR Code</th>";
-  headers.forEach(h => html += `<th>${h}</th>`);
-  html += "<th>藥品外觀</th>"; // ✅ 新增欄位
-  html += "</tr></thead><tbody>";
-
-  results.forEach(result => {
-    const row = result.item;
-    const matchMap = {};
-
-    if (result.matches) {
-      result.matches.forEach(m => {
-        matchMap[m.key] = m.indices;
-      });
-    }
-
-    const qrContent = row["料位號"] ? `${row["料位號"]}00199999999` : "";
-    const qrUrl = qrContent
-      ? `https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=${encodeURIComponent(qrContent)}`
-      : "";
-
-    html += "<tr>";
-    html += `<td>${qrUrl ? `<img class="qr" src="${qrUrl}" alt="QR">` : "N/A"}</td>`;
-
-    headers.forEach(h => {
-      const val = String(row[h] ?? "");
-      if (matchMap[h]) {
-        html += `<td>${highlightMatch(val, matchMap[h])}</td>`;
-      } else {
-        html += `<td>${val}</td>`;
+      if (!results || results.length === 0) {
+        document.getElementById("tableContainer").innerHTML = "沒有符合的資料";
+        return;
       }
-    });
 
-    // ✅ 新增「藥品外觀」欄位，使用 encodeURIComponent 保護網址參數
-    const drugId = row["藥品編號"];
-    let drugLink = "無資料";
-    if (drugId) {
-      const safeId = encodeURIComponent(String(drugId));
-      const href = `https://www.cgmh.org.tw/tw/Services/DrugSearch?keyword=${safeId}`;
-      drugLink = `<a href="${href}" target="_blank">查看</a>`;
+      let html = "<table><thead><tr>";
+      html += "<th>QR Code</th>";
+      headers.forEach(h => html += `<th>${h}</th>`);
+      html += "<th>藥品外觀</th>";
+      html += "</tr></thead><tbody>";
+
+      const qrMap = [];
+
+      results.forEach((result, index) => {
+        const row = result.item;
+        const matchMap = {};
+
+        if (result.matches) {
+          result.matches.forEach(m => {
+            matchMap[m.key] = m.indices;
+          });
+        }
+
+        const qrContent = row["料位號"] ? `${row["料位號"]}00199999999` : "";
+        const qrId = `qr_${index}_${Math.random().toString(36).substr(2, 5)}`;
+
+        html += "<tr>";
+        html += `<td><div id="${qrId}" class="qr"></div></td>`;
+
+        headers.forEach(h => {
+          const val = String(row[h] ?? "");
+          if (matchMap[h]) {
+            html += `<td>${highlightMatch(val, matchMap[h])}</td>`;
+          } else {
+            html += `<td>${val}</td>`;
+          }
+        });
+
+        const drugId = row["藥品編號"];
+        let drugLink = "無資料";
+        if (drugId) {
+          const safeId = encodeURIComponent(String(drugId));
+          const href = `https://www.cgmh.org.tw/tw/Services/DrugSearch?keyword=${safeId}`;
+          drugLink = `<a href="${href}" target="_blank">查看</a>`;
+        }
+        html += `<td>${drugLink}</td>`;
+        html += "</tr>";
+
+        if (qrContent) {
+          qrMap.push({ id: qrId, text: qrContent });
+        }
+      });
+
+      html += "</tbody></table>";
+      document.getElementById("tableContainer").innerHTML = html;
+
+      generateQRCodes(qrMap); // ✅ 分批產生 QRCode
     }
-    html += `<td>${drugLink}</td>`;
 
-    html += "</tr>";
-  });
+    // ✅ 分批 QR Code 產生函式
+    function generateQRCodes(qrMap, index = 0) {
+      if (index >= qrMap.length) return;
 
-  html += "</tbody></table>";
-  document.getElementById("tableContainer").innerHTML = html;
-}
+      const { id, text } = qrMap[index];
+      const target = document.getElementById(id);
+      if (target) {
+        new QRCode(target, {
+          text: text,
+          width: 64,
+          height: 64
+        });
+      }
 
+      setTimeout(() => generateQRCodes(qrMap, index + 1), 10); // 每筆間隔 10ms
+    }
 
     function highlightMatch(text, indices) {
       let result = "";
@@ -161,23 +197,27 @@
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;");
     }
+
+    function clean() {
+      document.getElementById("searchInput").value = "";
+      document.getElementById("searchInput").focus();
+      document.getElementById("tableContainer").innerHTML = "";
+    }
+
+    function updateTime() {
+      google.script.run.withSuccessHandler(function(data) {
+        document.getElementById("drugfile_update_date_id").innerHTML = data[1];
+        document.getElementById("pb_locationfile_update_date_id").innerHTML = data[2];
+        document.getElementById("pp_locationfile_update_date_id").innerHTML = data[3];
+        document.getElementById("pa_locationfile_update_date_id").innerHTML = data[4];
+        document.getElementById("mye_locationfile_update_date_id").innerHTML = data[5];
+        document.getElementById("pk_locationfile_update_date_id").innerHTML = data[6];
+        document.getElementById("web_version_id").innerHTML = data[7];
+        document.getElementById("backend_version_id").innerHTML = data[8];
+      }).searchUpdateTime();
+    }
   </script>
 
-  <script>function updateTime() {
-        google.script.run.withSuccessHandler(
-          function(data){            
-              document.getElementById("drugfile_update_date_id").innerHTML = data[1];
-              document.getElementById("pb_locationfile_update_date_id").innerHTML = data[2];
-              document.getElementById("pp_locationfile_update_date_id").innerHTML = data[3];
-              document.getElementById("pa_locationfile_update_date_id").innerHTML = data[4];
-              document.getElementById("mye_locationfile_update_date_id").innerHTML = data[5];
-              document.getElementById("pk_locationfile_update_date_id").innerHTML = data[6];
-              document.getElementById("version_id").innerHTML = data[7];
-
-          }
-        ).searchUpdateTime();
-      };      
-    </script>
   <div>
     <h4 id="drugfile_update_date_id"></h4>
     <h4 id="pb_locationfile_update_date_id"></h4>
@@ -185,8 +225,9 @@
     <h4 id="pa_locationfile_update_date_id"></h4>
     <h4 id="mye_locationfile_update_date_id"></h4>
     <h4 id="pk_locationfile_update_date_id"></h4><br>
-    <h4 id="version_id"><h4>
-    <h4>作者：Vincent 燊<h4>
+    <h4 id="web_version_id"></h4>
+    <h4 id="backend_version_id"></h4>
+    <h4>作者：Vincent 燊</h4>
   </div>
 </body>
 </html>
