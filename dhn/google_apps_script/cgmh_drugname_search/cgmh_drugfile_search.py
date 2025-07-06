@@ -22,12 +22,12 @@ def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
     data_finish = data_finish[1:]
 
     # 寫入colnum到google sheet
-    SAMPLE_RANGE_NAME = "{}!A{}".format("drugfile", 1)
+    SAMPLE_RANGE_NAME = "{}!A{}".format("< sheet name >", < start row number >)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                           valueInputOption="USER_ENTERED", body={"values": [col_header]}).execute()
 
     # 寫入資料到google sheet
-    SAMPLE_RANGE_NAME = "{}!A{}".format("drugfile", 14)
+    SAMPLE_RANGE_NAME = "{}!A{}".format("< sheet name >", < start row number >)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                           valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
     pass
@@ -67,14 +67,14 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
                                MYEDrugLocationDict.get(content[0], ""),
                                PKDrugLocationDict.get(content[0], "")])
     updateTime = ["更新時間",
-                  "Drug檔更新日：{}".format("2025-06-18 10:48"),
-                  "PB定位更新日：{}".format("2024-05-05 14:49"),
-                  "PP定位更新日：{}".format("2024-05-05 14:49"),
-                  "PA定位更新日：{}".format("2024-05-05 14:49"),
-                  "MYE定位更新日：{}".format("2024-05-05 14:49"),
-                  "PK定位更新日：{}".format("2024-05-05 14:49"),
-                  "Web Version：{}".format("2.1.0"),
-                  "Backend Version：{}".format("1.7.4")]
+                  "Drug檔更新日：{}".format("< Update time >"),
+                  "PB定位更新日：{}".format("< Update time >"),
+                  "PP定位更新日：{}".format("< Update time >"),
+                  "PA定位更新日：{}".format("< Update time >"),
+                  "MYE定位更新日：{}".format("< Update time >"),
+                  "PK定位更新日：{}".format("< Update time >"),                
+                  "Web Version：{}".format("< Version number >"),
+                  "Backend Version：{}".format("< Version number >")]
     result.append(updateTime)
 
     return result
@@ -82,10 +82,10 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
 if __name__ == "__main__":
     # version 1.7.4
     load_dotenv()
-    LocationFilePath = ["D:/PyCharmProjection/allprojection/cgmh/data/pb_location.txt",
-                        "D:/PyCharmProjection/allprojection/cgmh/data/pp_location.txt",
-                        "D:/PyCharmProjection/allprojection/cgmh/data/pa_location.txt",
-                        "D:/PyCharmProjection/allprojection/cgmh/data/mye_location.txt",
-                        "D:/PyCharmProjection/allprojection/cgmh/data/pk_location.txt", ]
+    LocationFilePath = ["< PB location filepath >",
+                        "< PP location filepath >",
+                        "< PA location filepath >",
+                        "< MYE location filepath >",
+                        "< PK location filepath >", ]
 
-    cgmhDrugfileGsheet("./data/Adgn.txt", LocationFilePath)
+    cgmhDrugfileGsheet("< drugfile filepath >", LocationFilePath)
