@@ -56,7 +56,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     result = [columnItem]
     for content in drugFile[1:]:
         content = content.split(";")
-        if len(content) != 117:
+        if len(content) < 117:
             continue
         else:
             if content[12]:
@@ -66,6 +66,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
                                PADrugLocationDict.get(content[0], ""),
                                MYEDrugLocationDict.get(content[0], ""),
                                PKDrugLocationDict.get(content[0], "")])
+
     updateTime = ["更新時間",
                   "Drug檔更新日：{}".format("< Update time >"),
                   "PB定位更新日：{}".format("< Update time >"),
@@ -80,12 +81,12 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     return result
 
 if __name__ == "__main__":
-    # version 1.7.4
+    # version 1.7.5
     load_dotenv()
     LocationFilePath = ["< PB location filepath >",
                         "< PP location filepath >",
                         "< PA location filepath >",
                         "< MYE location filepath >",
-                        "< PK location filepath >", ]
+                        "< PK location filepath >"]
 
     cgmhDrugfileGsheet("< drugfile filepath >", LocationFilePath)
