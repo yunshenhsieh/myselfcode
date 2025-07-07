@@ -83,6 +83,7 @@
       fuse = new Fuse(originalData, {
         keys: headers,
         threshold: 0.2,
+        ignoreLocation: true,
         includeMatches: true
       });
 
