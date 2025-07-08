@@ -17,6 +17,8 @@ def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
     # Call the Sheets API
     sheet = service.spreadsheets()
 
+    deletePreviousData(sheet, SAMPLE_SPREADSHEET_ID)
+
     data_finish = drugFileClean(drugFilePath, LocationFilePath)
     col_header = data_finish[0]
     data_finish = data_finish[1:]
@@ -30,6 +32,18 @@ def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
     SAMPLE_RANGE_NAME = "{}!A{}".format("< sheet name >", < start row number >)
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                           valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
+    pass
+
+def deletePreviousData(sheet, SAMPLE_SPREADSHEET_ID: str):
+    SAMPLE_RANGE_NAME = "{}!A:A".format("< sheet name >")
+    result =sheet.values().get(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME).execute()
+    values = result.get('values', [])
+    # 取得最大 row 數（有資料的列數）
+    max_row = len(values)
+    # 要清除的範圍
+    range_to_clear = "{}!A14:Z{}".format("< sheet name >", max_row)
+    # 執行清除
+    sheet.values().clear(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=range_to_clear, body={}).execute()
     pass
 
 def locationFileClean(filePath: str) -> dict:
@@ -81,7 +95,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     return result
 
 if __name__ == "__main__":
-    # version 1.7.5
+    # version 2.0.1
     load_dotenv()
     LocationFilePath = ["< PB location filepath >",
                         "< PP location filepath >",
