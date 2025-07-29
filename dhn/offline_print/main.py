@@ -2,14 +2,25 @@ import datetime
 import os
 import extract
 import docx, qrcode
+import charset_normalizer
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Cm
 import win32api, win32print
 import tkinter as tk
 
+def detectTxtEncoding(filePath: str) -> str:
+    result = charset_normalizer.from_path(filePath)
+    txtEncoding = result.best()
+    if txtEncoding is None:
+        txtEncoding = 'big5'
+    else:
+        txtEncoding = txtEncoding.encoding
+    return txtEncoding
+
 def loadDrugProfile(filePath: str) -> dict:
-    with open(filePath, 'r', encoding='big5-hkscs') as f:
+    txtEncoding = detectTxtEncoding(filePath)
+    with open(filePath, 'r', encoding=txtEncoding) as f:
         dataList = f.readlines()
     drugProfileDict = {}
     for data in dataList:
@@ -21,7 +32,8 @@ def loadDrugProfile(filePath: str) -> dict:
 
 def loadUseageWay(filePath: str) -> dict:
     useageWayDict = {}
-    with open(filePath, 'r', encoding='utf-8')as f:
+    txtEncoding = detectTxtEncoding(filePath)
+    with open(filePath, 'r', =txtEncoding)as f:
         for data in f.readlines():
             data = data.split('=')
             useageWayDict[data[0].strip()] = data[1].strip()
@@ -190,7 +202,8 @@ def drugBagMaker(contentList: list[str], useageWayDict: dict, frequencyDict: dic
     return [receiveNumber, dipensingDay, ptName]
 
 def envSet(filePath: str) -> dict:
-    with open(filePath, 'r', encoding='utf-8')as f:
+    txtEncoding = detectTxtEncoding(filePath)
+    with open(filePath, 'r', encoding=txtEncoding)as f:
         envSettingDict = {}
         for setting in f.readlines():
             setting = setting.split('=')
@@ -260,7 +273,7 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay('./頻次.txt')
     envSettingDict = envSet('./env')
     beforeOrAfterDict = {'P': '飯後', 'A': '飯前'}
-    print('版本：4.0.7')
+    print('版本：4.0.8')
     print('作者：謝昀燊Vincent')
     tkinterSet()
     pass
