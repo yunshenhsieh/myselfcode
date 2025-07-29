@@ -1,7 +1,7 @@
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from dotenv import load_dotenv
-import os
+import os, charset_normalizer
 
 def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
 
@@ -46,8 +46,18 @@ def deletePreviousData(sheet, SAMPLE_SPREADSHEET_ID: str):
     sheet.values().clear(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=range_to_clear, body={}).execute()
     pass
 
+def detectTxtEncoding(filePath: str) -> str:
+    result = charset_normalizer.from_path(filePath)
+    txtEncoding = result.best()
+    if txtEncoding is None:
+        txtEncoding = 'big5'
+    else:
+        txtEncoding = txtEncoding.encoding
+    return txtEncoding
+
 def locationFileClean(filePath: str) -> dict:
-    with open(filePath, "r", encoding="big5")as f:
+    txtEncoding = detectTxtEncoding(filePath)
+    with open(filePath, "r", encoding=txtEncoding)as f:
         tmp = f.readlines()
     for n, content in enumerate(tmp):
         tmp[n] = content.split("\t")
@@ -57,7 +67,8 @@ def locationFileClean(filePath: str) -> dict:
     return result
 
 def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
-    with open(drugFilePath, "r", encoding="utf-8")as f:
+    txtEncoding = detectTxtEncoding(drugFilePath)
+    with open(drugFilePath, "r", encoding=txtEncoding)as f:
         drugFile = f.readlines()
     PBDrugLocationDict = locationFileClean(LocationFilePath[0])
     PPDrugLocationDict = locationFileClean(LocationFilePath[1])
@@ -95,7 +106,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     return result
 
 if __name__ == "__main__":
-    # version 2.0.1
+    # version 2.0.2
     load_dotenv()
     LocationFilePath = ["< PB location filepath >",
                         "< PP location filepath >",
