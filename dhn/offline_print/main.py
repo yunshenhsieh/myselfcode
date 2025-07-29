@@ -261,7 +261,7 @@ def tkinterSet():
     btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
     btnClear.pack()
 
-    verInfo = tk.Label(root, text='Ver：4.0.7\n作者：謝昀燊Vincent')
+    verInfo = tk.Label(root, text='Ver：4.0.8\n作者：謝昀燊Vincent')
     verInfo.pack()
 
     root.mainloop()
