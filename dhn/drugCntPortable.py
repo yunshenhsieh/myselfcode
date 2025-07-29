@@ -1,4 +1,13 @@
-import openpyxl
+import openpyxl, charset_normalizer
+
+def detectTxtEncoding(filePath: str) -> str:
+    result = charset_normalizer.from_path(filePath)
+    txtEncoding = result.best()
+    if txtEncoding is None:
+        txtEncoding = 'big5'
+    else:
+        txtEncoding = txtEncoding.encoding
+    return txtEncoding
 
 def drugCntToExcel(sheet_name: int, data_finish: list, wb: object):
     ws = wb.create_sheet(sheet_name)
@@ -7,7 +16,8 @@ def drugCntToExcel(sheet_name: int, data_finish: list, wb: object):
     pass
 
 def drugCntOutput(fileName: str) -> list:
-    with open("./{}".format(fileName), "r", encoding="big5")as f:
+    txtEncoding = detectTxtEncoding(fileName)
+    with open("./{}".format(fileName), "r", encoding=txtEncoding)as f:
         tmp = f.readlines()
         print(len(tmp))
         resource = []
@@ -183,8 +193,9 @@ def ppOclassParser(oClass: [list], codeNameDict: dict) -> list:
     return ppOclassCntList
 
 def locationFileClean(filePath: str) -> dict:
+    txtEncoding = detectTxtEncoding(filePath)
     # 得知藥品在庫台定位用。
-    with open(filePath, "r", encoding="big5")as f:
+    with open(filePath, "r", encoding=txtEncoding)as f:
         tmp = f.readlines()
     for n, content in enumerate(tmp):
         tmp[n] = content.split("\t")
@@ -194,8 +205,9 @@ def locationFileClean(filePath: str) -> dict:
     return result
 
 def drugFileClean(drugFilePath: str, LocationFilePath: str) -> dict:
+    txtEncoding = detectTxtEncoding(drugFilePath)
     # 將pp的「材編:位置」轉成「料位號：位置」。
-    with open(drugFilePath, "r", encoding="utf-8")as f:
+    with open(drugFilePath, "r", encoding=txtEncoding)as f:
         drugFile = f.readlines()
 
     PPDrugLocationDict = locationFileClean(LocationFilePath)
@@ -258,8 +270,8 @@ def updateData(recordDate: str):
 
 
 if __name__ == "__main__":
-    # Version 1.4.2
-    print("Version 1.4.2")
+    # Version 1.4.3
+    print("Version 1.4.3")
     print("製作人員：謝昀燊")
     fileDate = input("請輸入檔案日期：")
     updateData(fileDate)
