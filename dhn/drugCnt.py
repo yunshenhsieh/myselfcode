@@ -1,4 +1,4 @@
-import os
+import os, charset_normalizer
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 from google.oauth2 import service_account
@@ -38,8 +38,18 @@ def drugCntUpdateToGsheet(sheet_name: int, data_finish: list):
     sheet.values().update(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=SAMPLE_RANGE_NAME,
                           valueInputOption="USER_ENTERED", body={"values": data_finish}).execute()
 
-def drugCntOutput(fileName: str) -> list:
-    with open("./history/{}".format(fileName), "r", encoding="big5")as f:
+def detectTxtEncoding(filePath: str) -> str:
+    result = charset_normalizer.from_path(filePath)
+    txtEncoding = result.best()
+    if txtEncoding is None:
+        txtEncoding = 'big5'
+    else:
+        txtEncoding = txtEncoding.encoding
+    return txtEncoding
+
+def drugCntOutput(filePath: str) -> list:
+    txtEncoding = detectTxtEncoding(filePath)
+    with open(filePath, "r", encoding=txtEncoding)as f:
         tmp = f.readlines()
         print(len(tmp))
         resource = []
@@ -195,8 +205,8 @@ def ppOclassParser(oClass: [list], codeNameDict: dict) -> list:
                 ppTotalLevelDict[oList[0][0:4]][oList[1]] = \
                     ppTotalLevelDict[oList[0][0:4]].get(oList[1]) + (int(oList[2]) * oList[3])
 
-    drugCodeAndPPLocationDict = drugFileClean("D:/PyCharmProjection/allprojection/cgmh/data/Adgn.txt",
-                                              "D:/PyCharmProjection/allprojection/cgmh/data/pp_location.txt")
+    drugCodeAndPPLocationDict = drugFileClean("< drugfile filepath >",
+                                              "< PP location filepath >")
 
     tmpOclassCntList = [["樓層", "料位號", "總用量", "定位", "藥品名稱"]]
     for levelNum, data in ppTotalLevelDict.items():
@@ -215,8 +225,9 @@ def ppOclassParser(oClass: [list], codeNameDict: dict) -> list:
     return ppOclassCntList
 
 def locationFileClean(filePath: str) -> dict:
+    txtEncoding = detectTxtEncoding(filePath)
     # 得知藥品在庫台定位用。
-    with open(filePath, "r", encoding="big5")as f:
+    with open(filePath, "r", encoding=txtEncoding)as f:
         tmp = f.readlines()
     for n, content in enumerate(tmp):
         tmp[n] = content.split("\t")
@@ -226,8 +237,9 @@ def locationFileClean(filePath: str) -> dict:
     return result
 
 def drugFileClean(drugFilePath: str, LocationFilePath: str) -> dict:
+    txtEncoding = detectTxtEncoding(drugFilePath)
     # 將pp的「材編:位置」轉成「料位號：位置」。
-    with open(drugFilePath, "r", encoding="utf-8")as f:
+    with open(drugFilePath, "r", encoding=txtEncoding)as f:
         drugFile = f.readlines()
 
     PPDrugLocationDict = locationFileClean(LocationFilePath)
@@ -267,7 +279,7 @@ def delete_gsheet(sheet_id, gsheet_name_id):
     pass
 
 def updateData(recordDate: str):
-    separateLevelGroupFinishList, nstuList, ppOclassCntList = drugCntOutput("Batchdata{}.csv".format(recordDate))
+    separateLevelGroupFinishList, nstuList, ppOclassCntList = drugCntOutput("./history/Batchdata{}.csv".format(recordDate))
 
     for cnt in range(len(separateLevelGroupFinishList)):
         drugCntUpdateToGsheet("{}".format(recordDate) + "0{}".format(cnt + 1), separateLevelGroupFinishList[cnt])
@@ -293,7 +305,7 @@ def deletePostdata(recordDate: str):
     pass
 
 if __name__ == "__main__":
-    # version 1.2.4
+    # version 1.2.5
     load_dotenv()
     recordDate = "20250618"
 
