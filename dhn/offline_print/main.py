@@ -6,7 +6,7 @@ import charset_normalizer
 from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 from docx.enum.table import WD_TABLE_ALIGNMENT
 from docx.shared import Cm
-import win32api, win32print
+import win32api
 import tkinter as tk
 
 def detectTxtEncoding(filePath: str) -> str:
@@ -33,7 +33,7 @@ def loadDrugProfile(filePath: str) -> dict:
 def loadUseageWay(filePath: str) -> dict:
     useageWayDict = {}
     txtEncoding = detectTxtEncoding(filePath)
-    with open(filePath, 'r', =txtEncoding)as f:
+    with open(filePath, 'r', encoding=txtEncoding)as f:
         for data in f.readlines():
             data = data.split('=')
             useageWayDict[data[0].strip()] = data[1].strip()
@@ -45,7 +45,7 @@ def loadPrint(filePath: str, printerName: str, receiveNumber: str, ptName: str):
         0,
         'print',
         filePath,
-        '/d:{}'.format(win32print.OpenPrinter(printerName)),
+        '/d:{}'.format(printerName),
         '.',
         0
     )
@@ -211,7 +211,7 @@ def envSet(filePath: str) -> dict:
 
     return envSettingDict
 
-def tkinterSet():
+def tkinterSet(verInfo: str):
     root = tk.Tk()
     root.title('急診離線藥袋列印')
     root.geometry('{}x{}'.format(envSettingDict['視窗寬度'], envSettingDict['視窗高度']))
@@ -261,7 +261,7 @@ def tkinterSet():
     btnClear = tk.Button(root, text='clear', font=('Arial', 30, 'bold'), command=clear)  # 放入清空按鈕
     btnClear.pack()
 
-    verInfo = tk.Label(root, text='Ver：4.0.8\n作者：謝昀燊Vincent')
+    verInfo = tk.Label(root, text=verInfo)
     verInfo.pack()
 
     root.mainloop()
@@ -273,7 +273,7 @@ if __name__ == "__main__":
     frequencyDict = loadUseageWay('./頻次.txt')
     envSettingDict = envSet('./env')
     beforeOrAfterDict = {'P': '飯後', 'A': '飯前'}
-    print('版本：4.0.8')
-    print('作者：謝昀燊Vincent')
-    tkinterSet()
+    verInfo = 'Version：4.0.9\n作者：謝昀燊Vincent'
+    print(verInfo)
+    tkinterSet(verInfo)
     pass
