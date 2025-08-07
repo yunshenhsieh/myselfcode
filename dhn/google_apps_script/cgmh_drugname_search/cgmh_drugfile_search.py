@@ -22,6 +22,7 @@ def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
     data_finish = drugFileClean(drugFilePath, LocationFilePath)
     col_header = data_finish[0]
     data_finish = data_finish[1:]
+    print(len(data_finish))
 
     # 寫入colnum到google sheet
     SAMPLE_RANGE_NAME = "{}!A{}".format("< sheet name >", < start row number >)
@@ -82,10 +83,9 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     for content in drugFile[1:]:
         content = content.split(";")
         if len(content) < 117:
-            continue
-        else:
-            if content[12]:
-                result.append([content[0], content[1], content[2], content[12], content[60],
+            content = content + ['' for x in range(61)]
+        if content[12] or ("臨床試驗" not in content[1]):
+                result.append([content[0], content[1], content[2], '\'' + content[12], content[60],
                                PBDrugLocationDict.get(content[0], ""),
                                PPDrugLocationDict.get(content[0], ""),
                                PADrugLocationDict.get(content[0], ""),
@@ -106,7 +106,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     return result
 
 if __name__ == "__main__":
-    # version 2.0.2
+    # version 2.1.0
     load_dotenv()
     LocationFilePath = ["< PB location filepath >",
                         "< PP location filepath >",
