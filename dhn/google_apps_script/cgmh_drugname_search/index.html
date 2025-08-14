@@ -31,6 +31,10 @@
       word-wrap: break-word;
       word-break: break-all;
       white-space: normal;
+      font-size: 20px;      
+    }
+    td {
+      font-size: 30px;
     }
     mark {
       background-color: yellow;
@@ -73,6 +77,7 @@
       gap: 40px;             /* 左右間距 */
       padding: 40px; /* ✅ 新增這行 */
       box-sizing: border-box;
+      flex-wrap: wrap; /* 小螢幕自動換行 */
     }
 
     #qrPreview {      
@@ -82,7 +87,7 @@
     }
 
     #qrInfo {
-      font-size: 24px;
+      font-size: 50px;
       color: white;
       text-align: left;
       line-height: 1.6;
@@ -103,7 +108,7 @@
   <!-- QR Code Overlay -->
   <div id="qrOverlay" onclick="closeOverlay()">
     <div id="qrOverlayContent" onclick="event.stopPropagation()" style="position: relative;">
-      <button onclick="closeOverlay()" style="position: absolute; top: 10px; right: 10px; font-size: 24px; background: none; border: none; color: white; cursor: pointer;">❌</button>
+      <button onclick="closeOverlay()" style="position: absolute; top: 10px; right: 10px; font-size: 72px; background: none; border: none; color: white; cursor: pointer;">❌</button>
       <div id="qrPreview"></div>
       <div id="qrInfo"></div>
     </div>
@@ -210,7 +215,8 @@
             id: qrId,
             text: qrContent,
             location: row["料位號"] || "",
-            name: row["藥品名稱"] || ""
+            name: row["藥品名稱"] || "",
+            productName: row["藥品商品名稱"]
           });
         }
       });
@@ -224,7 +230,7 @@
     function generateQRCodes(qrMap, index = 0) {
       if (index >= qrMap.length) return;
 
-      const { id, text, location, name } = qrMap[index];
+      const { id, text, location, name, productName } = qrMap[index];
       const target = document.getElementById(id);
       if (target) {
         new QRCode(target, {
@@ -234,14 +240,14 @@
         });
 
         target.onclick = function () {
-          showOverlay(text, location, name);
+          showOverlay(text, location, name, productName);
         };
       }
 
       setTimeout(() => generateQRCodes(qrMap, index + 1), 10);
     }
 
-    function showOverlay(qrText, locationId = "", drugName = "") {
+    function showOverlay(qrText, locationId = "", drugName = "", productName = "") {
       const preview = document.getElementById("qrPreview");
       const info = document.getElementById("qrInfo");
 
@@ -250,13 +256,15 @@
 
       new QRCode(preview, {
         text: qrText,
-        width: 64 * 2,
-        height: 64 * 2
+        width: 64 * 4,
+        height: 64 * 4
       });
 
-      const locationText = locationId ? `料位號：${locationId}` : "";
-      const drugNameText = drugName ? `藥品名稱：${drugName}` : "";
-      info.innerHTML = `${locationText}<br>${drugNameText}`;
+      const locationText = locationId ? `料位號：${escapeHTML(String(locationId))}` : "";
+      const drugNameText = drugName ? `藥品名稱：${escapeHTML(String(drugName))}` : "";
+      const productNameText = productName ? `藥品商品名稱：${escapeHTML(String(productName))}` : "";
+      info.innerHTML = [locationText, drugNameText, productNameText].filter(Boolean).join("<br>");
+
 
       document.getElementById("qrOverlay").style.display = "flex";
     }
