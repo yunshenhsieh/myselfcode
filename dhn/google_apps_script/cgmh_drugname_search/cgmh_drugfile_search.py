@@ -2,6 +2,7 @@ from googleapiclient.discovery import build
 from google.oauth2 import service_account
 from dotenv import load_dotenv
 import os, charset_normalizer
+import pandas as pd
 
 def cgmhDrugfileGsheet(drugFilePath: str, LocationFilePath: list):
 
@@ -68,29 +69,31 @@ def locationFileClean(filePath: str) -> dict:
     return result
 
 def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
-    txtEncoding = detectTxtEncoding(drugFilePath)
-    with open(drugFilePath, "r", encoding=txtEncoding)as f:
-        drugFile = f.readlines()
+
+    df = pd.read_excel(drugFilePath).fillna('')
+    header = df.columns.tolist()
+    rows = df.values.tolist()
+    columnItem =  header + ["PB", "PP", "PA", "MYE", "PK"]
+
     PBDrugLocationDict = locationFileClean(LocationFilePath[0])
     PPDrugLocationDict = locationFileClean(LocationFilePath[1])
     PADrugLocationDict = locationFileClean(LocationFilePath[2])
     MYEDrugLocationDict = locationFileClean(LocationFilePath[3])
     PKDrugLocationDict = locationFileClean(LocationFilePath[4])
 
-    columnItem = drugFile[0].split(";")
-    columnItem = [columnItem[0], columnItem[1], columnItem[2], columnItem[12], columnItem[60], "PB", "PP", "PA", "MYE", "PK"]
+
     result = [columnItem]
-    for content in drugFile[1:]:
-        content = content.split(";")
-        if len(content) < 117:
-            content = content + ['' for x in range(61)]
-        if content[12] or ("臨床試驗" not in content[1]):
-                result.append([content[0], content[1], content[2], '\'' + content[12], content[60],
-                               PBDrugLocationDict.get(content[0], ""),
-                               PPDrugLocationDict.get(content[0], ""),
-                               PADrugLocationDict.get(content[0], ""),
-                               MYEDrugLocationDict.get(content[0], ""),
-                               PKDrugLocationDict.get(content[0], "")])
+    for content in rows:
+        if len(content) < 10:
+            content = content + ['' for x in range(10)]
+
+        if ("臨床試驗" not in str(content[1])):
+            result.append([content[0], content[1], content[2], '\'' + content[3], content[4],
+                           PBDrugLocationDict.get(content[0], ""),
+                           PPDrugLocationDict.get(content[0], ""),
+                           PADrugLocationDict.get(content[0], ""),
+                           MYEDrugLocationDict.get(content[0], ""),
+                           PKDrugLocationDict.get(content[0], "")])
 
     updateTime = ["更新時間",
                   "Drug檔更新日：{}".format("< Update time >"),
@@ -106,7 +109,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     return result
 
 if __name__ == "__main__":
-    # version 2.1.0
+    # version 2.2.0
     load_dotenv()
     LocationFilePath = ["< PB location filepath >",
                         "< PP location filepath >",
