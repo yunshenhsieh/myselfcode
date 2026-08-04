@@ -68,6 +68,14 @@ def locationFileClean(filePath: str) -> dict:
         result[content[0]] = content[-2]
     return result
 
+def locationFileCleanPA(filePath: str) -> dict:
+    df = pd.read_excel(filePath).fillna('')
+    rows = df.values.tolist()
+    result = {}
+    for content in rows:
+        result[content[0]] = content[-1]
+    return result
+
 def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
 
     df = pd.read_excel(drugFilePath).fillna('')
@@ -77,7 +85,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
 
     PBDrugLocationDict = locationFileClean(LocationFilePath[0])
     PPDrugLocationDict = locationFileClean(LocationFilePath[1])
-    PADrugLocationDict = locationFileClean(LocationFilePath[2])
+    PADrugLocationDict = locationFileCleanPA(LocationFilePath[2])
     MYEDrugLocationDict = locationFileClean(LocationFilePath[3])
     PKDrugLocationDict = locationFileClean(LocationFilePath[4])
 
@@ -109,7 +117,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     return result
 
 if __name__ == "__main__":
-    # version 2.2.0
+    # version 2.2.1
     load_dotenv()
     LocationFilePath = ["< PB location filepath >",
                         "< PP location filepath >",
