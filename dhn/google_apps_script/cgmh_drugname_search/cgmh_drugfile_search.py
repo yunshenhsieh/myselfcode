@@ -48,24 +48,14 @@ def deletePreviousData(sheet, SAMPLE_SPREADSHEET_ID: str):
     sheet.values().clear(spreadsheetId=SAMPLE_SPREADSHEET_ID, range=range_to_clear, body={}).execute()
     pass
 
-def detectTxtEncoding(filePath: str) -> str:
-    result = charset_normalizer.from_path(filePath)
-    txtEncoding = result.best()
-    if txtEncoding is None:
-        txtEncoding = 'big5'
-    else:
-        txtEncoding = txtEncoding.encoding
-    return txtEncoding
 
 def locationFileClean(filePath: str) -> dict:
-    txtEncoding = detectTxtEncoding(filePath)
-    with open(filePath, "r", encoding=txtEncoding)as f:
-        tmp = f.readlines()
-    for n, content in enumerate(tmp):
-        tmp[n] = content.split("\t")
+    df = pd.read_excel(filePath).fillna('')
+    rows = df.values.tolist()
     result = {}
-    for content in tmp[1:]:
-        result[content[0]] = content[-2]
+    for content in rows:
+        result[content[0]] = str(content[-2])
+
     return result
 
 def locationFileCleanPA(filePath: str) -> dict:
@@ -77,9 +67,10 @@ def locationFileCleanPA(filePath: str) -> dict:
     return result
 
 def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
-
+    #以下5行為藥品主檔的ETL
     df = pd.read_excel(drugFilePath).fillna('')
     header = df.columns.tolist()
+    header = [header[0], header[1], header[2], header[12], header[60]]
     rows = df.values.tolist()
     columnItem =  header + ["PB", "PP", "PA", "MYE", "PK"]
 
@@ -92,11 +83,11 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
 
     result = [columnItem]
     for content in rows:
-        if len(content) < 10:
-            content = content + ['' for x in range(10)]
+        if len(content) < 60:
+            content = content + ['' for x in range(60)]
 
         if ("臨床試驗" not in str(content[1])):
-            result.append([content[0], content[1], content[2], '\'' + content[3], content[4],
+            result.append([content[0], content[1], content[2], '\'' + str(content[12]), content[60],
                            PBDrugLocationDict.get(content[0], ""),
                            PPDrugLocationDict.get(content[0], ""),
                            PADrugLocationDict.get(content[0], ""),
@@ -117,7 +108,7 @@ def drugFileClean(drugFilePath: str, LocationFilePath: list) -> [[str]]:
     return result
 
 if __name__ == "__main__":
-    # version 2.2.1
+    # version 2.3.0
     load_dotenv()
     LocationFilePath = ["< PB location filepath >",
                         "< PP location filepath >",
